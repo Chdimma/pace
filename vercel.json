@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "buildCommand": "bash vercel.sh",
+  "outputDirectory": "build/web",
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
