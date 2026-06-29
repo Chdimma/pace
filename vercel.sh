@@ -13,3 +13,8 @@ flutter config --enable-web
 flutter precache --web
 flutter pub get
 flutter build web --release
+
+if [ ! -d build/web ]; then
+  echo "Flutter web build output was not created." >&2
+  exit 1
+fi

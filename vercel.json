@@ -4,8 +4,8 @@
   "outputDirectory": "build/web",
   "routes": [
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
+      "src": "/(.*\\.(?:css|js|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|txt|map))",
+      "dest": "/$1"
     },
     {
       "src": "/(.*)",
