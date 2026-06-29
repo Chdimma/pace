@@ -5,6 +5,7 @@ const healthRoutes = require('./routes/health');
 const authRoutes = require('./routes/auth');
 const solanaRoutes = require('./routes/solana');
 const mqttRoutes = require('./routes/mqtt');
+const postureRoutes = require('./routes/posture');
 
 const app = express();
 
@@ -23,5 +24,6 @@ app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/solana', solanaRoutes);
 app.use('/api/mqtt', mqttRoutes);
+app.use('/api/posture', postureRoutes);
 
 module.exports = app;

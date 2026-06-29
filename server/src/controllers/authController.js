@@ -1,8 +1,15 @@
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const { query } = require('../config/db');
 
 function hashPassword(password) {
   return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+function signToken(user) {
+  return jwt.sign({ id: user.id, email: user.email, username: user.username }, process.env.JWT_SECRET || 'dev-secret', {
+    expiresIn: '7d',
+  });
 }
 
 async function loginUser(req, res) {
@@ -14,7 +21,7 @@ async function loginUser(req, res) {
     }
 
     const result = await query(
-      'SELECT * FROM users WHERE email = $1 AND password_hash = $2',
+      'SELECT id, name, email, username, phone_number FROM users WHERE email = $1 AND password_hash = $2',
       [email, hashPassword(password)]
     );
 
@@ -25,6 +32,7 @@ async function loginUser(req, res) {
     const user = result[0];
     return res.json({
       success: true,
+      token: signToken(user),
       user: {
         id: user.id,
         name: user.name,
