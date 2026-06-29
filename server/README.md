@@ -1,5 +1,7 @@
 # Pace Backend
 
+This backend is designed to run on Vercel from the same domain as the frontend.
+
 ## Local development
 
 1. Install dependencies:
@@ -14,8 +16,10 @@ Run the SQL in [sql/init.sql](sql/init.sql) in your Neon database to create the 
 
 ## Vercel deployment
 
-1. Set the project root to the server folder.
-2. Add the environment variables in Vercel:
+1. Deploy the frontend from the project root.
+2. Deploy the backend from the server folder.
+3. For a single-domain setup, the API should be available at /api/* on the same host.
+4. Set these environment variables in Vercel:
    - DATABASE_URL
    - SOLANA_RPC_URL
-3. Deploy.
+   - JWT_SECRET
