@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/foundation.dart'; // Added for kDebugMode
 import 'package:google_fonts/google_fonts.dart';
 
 import 'forgot_password_page.dart';
 import 'home_page.dart';
+import 'services/auth_service.dart';
 import 'signup_page.dart';
 import 'models/user_data.dart';
 
@@ -18,6 +18,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -184,53 +185,53 @@ class _LoginPageState extends State<LoginPage> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: GestureDetector(
-                      onTap: () {
-                        final phone = _phoneController.text.trim();
-                        final password = _passwordController.text.trim();
+                      onTap: _isSubmitting
+                          ? null
+                          : () async {
+                              final email = _phoneController.text.trim();
+                              final password = _passwordController.text.trim();
 
-                        // Bypass validation ONLY during development (kDebugMode)
-                        if (kDebugMode && phone.isEmpty && password.isEmpty) {
-                          isLoggedIn = true;
-                          currentUser.lastLoginDate = DateTime.now();
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const HomePage()),
-                          );
-                          return;
-                        }
+                              if (email.isEmpty || password.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Please enter your email and password'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                                return;
+                              }
 
-                        // Strict Validation (Always enforced in Release mode)
-                        if (phone.isEmpty || password.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Please enter both phone and password or leave both empty to skip"),
-                              backgroundColor: Colors.redAccent,
-                            ),
-                          );
-                          return;
-                        }
-
-                        // Check against currentUser
-                        bool isCorrectUser = (phone == currentUser.email || 
-                                             phone == currentUser.phoneNumber.replaceAll(" ", "")) &&
-                                            password == currentUser.password;
-
-                        if (isCorrectUser) {
-                          isLoggedIn = true;
-                          currentUser.lastLoginDate = DateTime.now();
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const HomePage()),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Invalid credentials. Use the details from signup or leave empty to skip."),
-                              backgroundColor: Colors.redAccent,
-                            ),
-                          );
-                        }
-                      },
+                              setState(() => _isSubmitting = true);
+                              try {
+                                final result = await AuthService.login(email: email, password: password);
+                                if (result['success'] == true) {
+                                  final user = result['user'];
+                                  currentUser.name = user['name'] ?? currentUser.name;
+                                  currentUser.email = user['email'] ?? currentUser.email;
+                                  currentUser.username = user['username'] ?? currentUser.username;
+                                  currentUser.phoneNumber = user['phoneNumber'] ?? currentUser.phoneNumber;
+                                  isLoggedIn = true;
+                                  currentUser.lastLoginDate = DateTime.now();
+                                  if (!mounted) return;
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const HomePage()),
+                                  );
+                                }
+                              } catch (error) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(error.toString().replaceFirst('Exception: ', '')),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                              } finally {
+                                if (mounted) {
+                                  setState(() => _isSubmitting = false);
+                                }
+                              }
+                            },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             vertical: 12, horizontal: 20),
@@ -242,7 +243,7 @@ class _LoginPageState extends State<LoginPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              "Login",
+                              _isSubmitting ? 'Signing in...' : 'Login',
                               style: GoogleFonts.poppins(
                                 color: Colors.white,
                                 fontSize: 18,

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/foundation.dart'; // Added for kDebugMode
 import 'package:google_fonts/google_fonts.dart';
 import 'models/user_data.dart';
+import 'services/auth_service.dart';
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
 
@@ -15,6 +15,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -120,72 +121,85 @@ class _SignUpPageState extends State<SignUpPage> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: GestureDetector(
-                      onTap: () {
-                        String name = _nameController.text.trim();
-                        String email = _emailController.text.trim();
-                        String password = _passwordController.text.trim();
-                        String username = _usernameController.text.trim();
+                      onTap: _isSubmitting
+                          ? null
+                          : () async {
+                              String name = _nameController.text.trim();
+                              String email = _emailController.text.trim();
+                              String password = _passwordController.text.trim();
+                              String username = _usernameController.text.trim();
 
-                        // Developer Bypass for Signup
-                        if (kDebugMode && name.isEmpty && email.isEmpty) {
-                          name = "Sample User";
-                          email = "sample@pace.app";
-                          password = "password123";
-                          username = "sample_dev";
-                        } else {
-                          // Strict Validation for Release or if user started typing
-                          if (name.isEmpty || email.isEmpty || password.isEmpty || username.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Please fill in all fields"),
-                                backgroundColor: Colors.redAccent,
-                              ),
-                            );
-                            return;
-                          }
-                          // ... rest of validation (email format, etc.)
-                        }
+                              if (name.isEmpty || email.isEmpty || password.isEmpty || username.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Please fill in all fields'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                                return;
+                              }
 
-                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Please enter a valid email address"),
-                              backgroundColor: Colors.redAccent,
-                            ),
-                          );
-                          return;
-                        }
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Please enter a valid email address'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                                return;
+                              }
 
-                        if (password.length < 6) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Password must be at least 6 characters"),
-                              backgroundColor: Colors.redAccent,
-                            ),
-                          );
-                          return;
-                        }
+                              if (password.length < 6) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Password must be at least 6 characters'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                                return;
+                              }
 
-                        // 1. Save data to our model
-                        currentUser.name = name;
-                        currentUser.email = email;
-                        currentUser.username = username;
-                        currentUser.password = password;
-                        currentUser.streak = 1;
-                        currentUser.lastLoginDate = DateTime.now();
-                        currentUser.joinDate = DateTime.now();
-                        
-                        // 2. Show success message
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Account created successfully! Please sign in."),
-                            backgroundColor: Color(0xFF764697),
-                          ),
-                        );
+                              setState(() => _isSubmitting = true);
+                              try {
+                                final result = await AuthService.signup(
+                                  name: name,
+                                  email: email,
+                                  password: password,
+                                  username: username,
+                                );
 
-                        // 3. Navigate back to Login Page
-                        Navigator.pop(context);
-                      },
+                                if (result['success'] == true) {
+                                  currentUser.name = name;
+                                  currentUser.email = email;
+                                  currentUser.username = username;
+                                  currentUser.password = password;
+                                  currentUser.streak = 1;
+                                  currentUser.lastLoginDate = DateTime.now();
+                                  currentUser.joinDate = DateTime.now();
+
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Account created successfully! Please sign in.'),
+                                      backgroundColor: Color(0xFF764697),
+                                    ),
+                                  );
+                                  Navigator.pop(context);
+                                }
+                              } catch (error) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(error.toString().replaceFirst('Exception: ', '')),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                              } finally {
+                                if (mounted) {
+                                  setState(() => _isSubmitting = false);
+                                }
+                              }
+                            },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             vertical: 12, horizontal: 20),
@@ -197,7 +211,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              "Sign up",
+                              _isSubmitting ? 'Creating account...' : 'Sign up',
                               style: GoogleFonts.poppins(
                                 color: Colors.white,
                                 fontSize: 18,
