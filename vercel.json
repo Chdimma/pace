@@ -4,14 +4,6 @@
   "outputDirectory": "build/web",
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/server/api/index.js"
-    },
-    {
-      "src": "/health",
-      "dest": "/server/api/index.js"
-    },
-    {
       "src": "/(.*\\.(?:css|js|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|txt|map))",
       "dest": "/$1"
     },
