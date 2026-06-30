@@ -1,11 +1,7 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "server/api/index.js",
-      "use": "@vercel/node"
-    }
-  ],
+  "buildCommand": "bash vercel.sh",
+  "outputDirectory": "build/web",
   "routes": [
     {
       "src": "/api/(.*)",
