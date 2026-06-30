@@ -4,6 +4,7 @@
     {
       "src": "vercel.sh",
       "use": "@vercel/static-build"
+      ,"config": { "distDir": "build/web" }
     },
     {
       "src": "server/api/index.js",
@@ -11,7 +12,6 @@
     }
   ],
   "buildCommand": "bash vercel.sh",
-  "outputDirectory": "build/web",
   "routes": [
     {
       "src": "/api/(.*)",
