@@ -11,11 +11,19 @@ class AuthService {
       body: jsonEncode({'email': email, 'password': password}),
     );
 
-    final body = jsonDecode(response.body);
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return body;
+    if (response.body.isEmpty) {
+      throw Exception('Empty response from server');
     }
-    throw Exception(body['error'] ?? 'Login failed');
+
+    try {
+      final body = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return body is Map<String, dynamic> ? body : {'success': false, 'message': body.toString()};
+      }
+      throw Exception(body['error'] ?? 'Login failed');
+    } catch (error) {
+      throw Exception('Invalid server response: ${response.body}');
+    }
   }
 
   static Future<Map<String, dynamic>> signup({
@@ -37,10 +45,18 @@ class AuthService {
       }),
     );
 
-    final body = jsonDecode(response.body);
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return body;
+    if (response.body.isEmpty) {
+      throw Exception('Empty response from server');
     }
-    throw Exception(body['error'] ?? 'Signup failed');
+
+    try {
+      final body = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return body is Map<String, dynamic> ? body : {'success': false, 'message': body.toString()};
+      }
+      throw Exception(body['error'] ?? 'Signup failed');
+    } catch (error) {
+      throw Exception('Invalid server response: ${response.body}');
+    }
   }
 }
