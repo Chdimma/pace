@@ -1,8 +1,26 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "vercel.sh",
+      "use": "@vercel/static-build"
+    },
+    {
+      "src": "server/api/index.js",
+      "use": "@vercel/node"
+    }
+  ],
   "buildCommand": "bash vercel.sh",
   "outputDirectory": "build/web",
   "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/server/api/index.js"
+    },
+    {
+      "src": "/health",
+      "dest": "/server/api/index.js"
+    },
     {
       "src": "/(.*\\.(?:css|js|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|txt|map))",
       "dest": "/$1"
