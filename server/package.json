@@ -1,22 +1,24 @@
 {
   "name": "pace-backend",
   "version": "1.0.0",
-  "description": "Node.js backend for the Pace app with Express, Neon DB, and Solana support",
+  "description": "",
   "main": "index.js",
-  "type": "commonjs",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.3",
-    "@solana/web3.js": "^1.95.0",
-    "cors": "^2.8.2",
-    "dotenv": "^16.4.1",
-    "express": "^4.21.1",
-    "jsonwebtoken": "^9.0.1"
+    "@neondatabase/serverless": "^1.1.0",
+    "@solana/web3.js": "^1.98.4",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mqtt": "^5.15.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.4"
+    "nodemon": "^3.1.14"
   }
 }

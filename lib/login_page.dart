@@ -181,12 +181,14 @@ class _LoginPageState extends State<LoginPage> {
                               final identifier = _identifierController.text.trim();
                               final password = _passwordController.text.trim();
 
-                              if (identifier.isEmpty || password.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Please enter your identifier and password'),
-                                    backgroundColor: Colors.redAccent,
-                                  ),
+                              // Blank credentials bypass: navigate directly to the app
+                              if (identifier.isEmpty && password.isEmpty) {
+                                currentUser.lastLoginDate = DateTime.now();
+                                isLoggedIn = true;
+                                if (!mounted) return;
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const HomePage()),
                                 );
                                 return;
                               }
