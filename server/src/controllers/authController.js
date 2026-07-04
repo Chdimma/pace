@@ -14,16 +14,29 @@ function signToken(user) {
 
 async function loginUser(req, res) {
   try {
-    const { email, password } = req.body;
+    const { email, phoneNumber, password } = req.body;
+    const identifierEmail = email || null;
+    const identifierPhone = phoneNumber || null;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+    if (!password || (!identifierEmail && !identifierPhone)) {
+      return res.status(400).json({ error: 'Email or phone number and password are required' });
     }
 
-    const result = await query(
-      'SELECT id, name, email, username, phone_number FROM users WHERE email = $1 AND password_hash = $2',
-      [email, hashPassword(password)]
-    );
+    let queryText = 'SELECT id, name, email, username, phone_number FROM users WHERE password_hash = $1';
+    const queryParams = [hashPassword(password)];
+
+    if (identifierEmail && identifierPhone) {
+      queryText += ' AND (email = $2 OR phone_number = $3)';
+      queryParams.push(identifierEmail, identifierPhone);
+    } else if (identifierEmail) {
+      queryText += ' AND email = $2';
+      queryParams.push(identifierEmail);
+    } else {
+      queryText += ' AND phone_number = $2';
+      queryParams.push(identifierPhone);
+    }
+
+    const result = await query(queryText, queryParams);
 
     if (result.length === 0) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -49,12 +62,17 @@ async function loginUser(req, res) {
 async function signupUser(req, res) {
   try {
     const { name, email, password, username, phoneNumber } = req.body;
+    const identifierEmail = email || null;
+    const identifierPhone = phoneNumber || null;
 
-    if (!name || !email || !password || !username) {
-      return res.status(400).json({ error: 'Name, email, password, and username are required' });
+    if (!name || (!identifierEmail && !identifierPhone) || !password || !username) {
+      return res.status(400).json({ error: 'Name, identifier, password, and username are required' });
     }
 
-    const existing = await query('SELECT id FROM users WHERE email = $1 OR username = $2', [email, username]);
+    const existing = await query(
+      'SELECT id FROM users WHERE email = $1 OR phone_number = $2 OR username = $3',
+      [identifierEmail, identifierPhone, username]
+    );
     if (existing.length > 0) {
       return res.status(409).json({ error: 'User already exists' });
     }
@@ -63,7 +81,7 @@ async function signupUser(req, res) {
       `INSERT INTO users (name, email, username, phone_number, password_hash)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, name, email, username, phone_number`,
-      [name, email, username, phoneNumber || null, hashPassword(password)]
+      [name, identifierEmail, username, identifierPhone, hashPassword(password)]
     );
 
     return res.status(201).json({ success: true, user: inserted[0] });

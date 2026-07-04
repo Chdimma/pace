@@ -8,6 +8,7 @@ import 'my_activities_page.dart';
 import 'my_schedule_page.dart';
 import 'workout_fitness_page.dart';
 import 'models/user_data.dart';
+import 'services/notification_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,6 +19,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Timer? _timer;
+  final AppNotificationService _notifications = AppNotificationService.instance;
 
   @override
   void initState() {
@@ -31,6 +33,7 @@ class _HomePageState extends State<HomePage> {
         setState(() {});
       }
     });
+
   }
 
   @override
@@ -65,7 +68,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       Text(
-                        "${currentUser.name}!",
+                        "${currentUser.username}!",
                         style: GoogleFonts.poppins(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -74,20 +77,45 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.notifications_none_outlined, size: 28),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (context, animation1, animation2) =>
-                              const NotificationPage(),
-                          transitionDuration: Duration.zero,
-                          reverseTransitionDuration: Duration.zero,
+                  Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.notifications_none_outlined, size: 28),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation1, animation2) =>
+                                  const NotificationPage(),
+                              transitionDuration: Duration.zero,
+                              reverseTransitionDuration: Duration.zero,
+                            ),
+                          );
+                        },
+                        color: Colors.black87,
+                      ),
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: ValueListenableBuilder<int>(
+                          valueListenable: _notifications.unreadCountNotifier,
+                          builder: (context, unreadCount, _) {
+                            if (unreadCount <= 0) {
+                              return const SizedBox.shrink();
+                            }
+
+                            return Container(
+                              width: 10,
+                              height: 10,
+                              decoration: const BoxDecoration(
+                                color: Colors.redAccent,
+                                shape: BoxShape.circle,
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                    color: Colors.black87,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -117,7 +145,7 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           const TextSpan(text: "Connection status: "),
                           TextSpan(
-                            text: currentUser.isBotConnected ? "Online" : "Offline",
+                            text: currentUser.connectionStatusText,
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.bold,
                               color: currentUser.isBotConnected ? Colors.black87 : Colors.red,

@@ -106,13 +106,6 @@ class AccountPage extends StatelessWidget {
               label: "Email Address",
               value: currentUser.email,
             ),
-            _buildDivider(),
-            _buildInfoTile(
-              icon: Icons.location_on_outlined,
-              label: "Location",
-              value: currentUser.location,
-            ),
-            
             const SizedBox(height: 50),
 
             // Edit Profile Button

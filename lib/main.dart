@@ -15,10 +15,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Pace',
       debugShowCheckedModeBanner: false,
+      showPerformanceOverlay: false,
       theme: ThemeData(
         textTheme: GoogleFonts.poppinsTextTheme(),
       ),
-      // The "Guard": Show HomePage if logged in, otherwise show LoginPage
       home: isLoggedIn ? const HomePage() : const LoginPage(),
     );
   }

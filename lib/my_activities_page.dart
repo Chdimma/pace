@@ -6,6 +6,7 @@ import 'notification_page.dart';
 import 'my_schedule_page.dart';
 import 'workout_fitness_page.dart';
 import 'models/user_data.dart'; // Import the model
+import 'services/notification_service.dart';
 
 class MyActivitiesPage extends StatefulWidget {
   const MyActivitiesPage({super.key});
@@ -17,6 +18,7 @@ class MyActivitiesPage extends StatefulWidget {
 class _MyActivitiesPageState extends State<MyActivitiesPage> {
   String selectedTimeframe = "Daily";
   bool isSyncing = true;
+  final AppNotificationService _notifications = AppNotificationService.instance;
 
   @override
   void initState() {
@@ -27,6 +29,7 @@ class _MyActivitiesPageState extends State<MyActivitiesPage> {
         setState(() {
           isSyncing = false;
           currentUser.lastSynced = DateTime.now(); // Update the sync timestamp
+          _notifications.addNotification('Your activity sync is complete.');
         });
       }
     });
@@ -67,19 +70,44 @@ class _MyActivitiesPageState extends State<MyActivitiesPage> {
                       ),
                     ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.notifications_none, size: 28, color: Colors.black),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          pageBuilder: (context, animation1, animation2) =>
-                              const NotificationPage(),
-                          transitionDuration: Duration.zero,
-                          reverseTransitionDuration: Duration.zero,
+                  Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.notifications_none, size: 28, color: Colors.black),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation1, animation2) =>
+                                  const NotificationPage(),
+                              transitionDuration: Duration.zero,
+                              reverseTransitionDuration: Duration.zero,
+                            ),
+                          );
+                        },
+                      ),
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: ValueListenableBuilder<int>(
+                          valueListenable: _notifications.unreadCountNotifier,
+                          builder: (context, unreadCount, _) {
+                            if (unreadCount <= 0) {
+                              return const SizedBox.shrink();
+                            }
+
+                            return Container(
+                              width: 10,
+                              height: 10,
+                              decoration: const BoxDecoration(
+                                color: Colors.redAccent,
+                                shape: BoxShape.circle,
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
                 ],
               ),

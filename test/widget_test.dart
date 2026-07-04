@@ -1,30 +1,31 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:my_flutter_app/main.dart';
+import 'package:my_flutter_app/exercise_library_page.dart';
+import 'package:my_flutter_app/my_schedule_page.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('tapping an exercise shows its detail sheet and selected state', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: ExerciseLibraryPage(category: 'Popular Exercises')),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('Full Body Yoga'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.tap(find.text('Full Body Yoga'));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Start Exercise'), findsOneWidget);
+    expect(find.byIcon(Icons.check_circle), findsOneWidget);
+  });
+
+  testWidgets('tapping a session shows the assigned exercise', (WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(home: MySchedulePage()));
+
+    await tester.tap(find.text('Workout by 7am'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Full Body Yoga'), findsOneWidget);
+    expect(find.text('Start Exercise'), findsOneWidget);
   });
 }

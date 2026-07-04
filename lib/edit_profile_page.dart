@@ -10,17 +10,8 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  final TextEditingController _nameController = TextEditingController(text: currentUser.name);
-  final TextEditingController _phoneController = TextEditingController(text: currentUser.phoneNumber);
-  final TextEditingController _emailController = TextEditingController(text: currentUser.email);
-  final TextEditingController _locationController = TextEditingController(text: currentUser.location);
-
   @override
   void dispose() {
-    _nameController.dispose();
-    _phoneController.dispose();
-    _emailController.dispose();
-    _locationController.dispose();
     super.dispose();
   }
 
@@ -46,17 +37,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
         actions: [
           TextButton(
             onPressed: () {
-              // Logic to save changes
-              setState(() {
-                currentUser.name = _nameController.text;
-                currentUser.phoneNumber = _phoneController.text;
-                currentUser.email = _emailController.text;
-                currentUser.location = _locationController.text;
-              });
               Navigator.pop(context);
             },
             child: Text(
-              "SAVE",
+              "DONE",
               style: GoogleFonts.poppins(
                 color: const Color(0xFF8D45B2),
                 fontWeight: FontWeight.bold,
@@ -74,70 +58,63 @@ class _EditProfilePageState extends State<EditProfilePage> {
             const SizedBox(height: 20),
             // Profile Picture Section
             Center(
-              child: Stack(
-                children: [
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: const Color(0xFFE1CDE3),
-                      border: Border.all(color: const Color(0xFF8D45B2), width: 2),
+              child: GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Profile picture update coming soon'),
+                      backgroundColor: Color(0xFF8D45B2),
                     ),
-                    child: const Icon(
-                      Icons.person,
-                      size: 80,
-                      color: Color(0xFF8D45B2),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF8D45B2),
+                  );
+                },
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
+                        color: const Color(0xFFE1CDE3),
+                        border: Border.all(color: const Color(0xFF8D45B2), width: 2),
                       ),
                       child: const Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                        size: 20,
+                        Icons.person,
+                        size: 80,
+                        color: Color(0xFF8D45B2),
                       ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF8D45B2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 32),
-
-            // Form Fields
-            _buildEditField(
-              label: "Full Name",
-              controller: _nameController,
-              icon: Icons.person_outline,
-            ),
-            const SizedBox(height: 24),
-            _buildEditField(
+            _buildReadOnlyField(
               label: "Phone Number",
-              controller: _phoneController,
+              value: currentUser.phoneNumber,
               icon: Icons.phone_android_outlined,
-              keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 24),
-            _buildEditField(
+            _buildReadOnlyField(
               label: "Email Address",
-              controller: _emailController,
+              value: currentUser.email,
               icon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
             ),
-            const SizedBox(height: 24),
-            _buildEditField(
-              label: "Location",
-              controller: _locationController,
-              icon: Icons.location_on_outlined,
-            ),
-            
             const SizedBox(height: 40),
           ],
         ),
@@ -145,11 +122,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildEditField({
+  Widget _buildReadOnlyField({
     required String label,
-    required TextEditingController controller,
+    required String value,
     required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,18 +144,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
             color: const Color(0xFFF5EEF7),
             borderRadius: BorderRadius.circular(15),
           ),
-          child: TextField(
-            controller: controller,
-            keyboardType: keyboardType,
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              color: Colors.black,
-              fontWeight: FontWeight.w600,
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              prefixIcon: Icon(icon, color: const Color(0xFF8D45B2)),
-              contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+            child: Row(
+              children: [
+                Icon(icon, color: const Color(0xFF8D45B2)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    value,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

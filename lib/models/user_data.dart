@@ -30,7 +30,7 @@ class UserData {
     required this.lastLoginDate,
     this.streak = 1,
     this.postureScore = 85,
-    this.isBotConnected = true,
+    this.isBotConnected = false,
     required this.nextStretch,
   });
 
@@ -39,19 +39,20 @@ class UserData {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final lastLogin = DateTime(lastLoginDate.year, lastLoginDate.month, lastLoginDate.day);
-    
+
     final difference = today.difference(lastLogin).inDays;
 
-    if (difference == 1) {
-      // Opened the next day! Increment streak.
-      streak += 1;
-      lastLoginDate = now;
-    } else if (difference > 1) {
-      // Missed a day. Reset streak to 1.
-      streak = 1;
-      lastLoginDate = now;
+    if (difference <= 0) {
+      return;
     }
-    // If difference is 0, they've already logged in today.
+
+    if (difference == 1) {
+      streak += 1;
+    } else {
+      streak = 0;
+    }
+
+    lastLoginDate = now;
   }
 
   // Check if enough days have passed to show a timeframe
@@ -179,6 +180,12 @@ class UserData {
     final seconds = duration.inSeconds % 60;
     return "${minutes}min ${seconds}secs";
   }
+
+  String get connectionStatusText => isBotConnected ? 'Online' : 'Offline';
+
+  void setConnectionStatus(bool connected) {
+    isBotConnected = connected;
+  }
 }
 
 // Global instance to simulate "Current Logged In User"
@@ -194,7 +201,7 @@ UserData currentUser = UserData(
   lastLoginDate: DateTime.now().subtract(const Duration(days: 1)), // Last login was yesterday
   streak: 3,
   postureScore: 85,
-  isBotConnected: true,
+  isBotConnected: false,
   nextStretch: DateTime.now().add(const Duration(minutes: 19, seconds: 20)),
 );
 

@@ -9,7 +9,7 @@ import 'account_page.dart';
 import 'my_activities_page.dart';
 import 'my_schedule_page.dart';
 import 'workout_fitness_page.dart';
-import 'theme_font_page.dart';
+import 'solana_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -106,13 +106,13 @@ class _SettingsPageState extends State<SettingsPage> {
                       _buildDivider(),
                       _buildSettingsTile(
                         icon: Icons.stars,
-                        title: "Theme and Font",
+                        title: "Solana",
                         showArrow: true,
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const ThemeFontPage(),
+                              builder: (context) => const SolanaPage(),
                             ),
                           );
                         },
@@ -317,3 +317,4 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 }
+

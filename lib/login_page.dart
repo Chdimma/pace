@@ -16,13 +16,14 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _identifierController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isSubmitting = false;
+  bool _usePhone = false;
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -98,42 +99,31 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 60),
-                  // Phone Number Input
+                  Row(
+                    children: [
+                      _buildModeChip(label: 'Email', selected: !_usePhone),
+                      const SizedBox(width: 10),
+                      _buildModeChip(label: 'Phone', selected: _usePhone),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFFE1CDE3),
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
+                      controller: _identifierController,
+                      keyboardType: _usePhone ? TextInputType.phone : TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        hintText: "Phone number",
+                        hintText: _usePhone ? 'Phone number' : 'Email address',
                         hintStyle: GoogleFonts.poppins(color: Colors.black38),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 20, horizontal: 20),
-                        prefixIcon: IntrinsicHeight(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const SizedBox(width: 20),
-                              Text(
-                                "+234",
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              const VerticalDivider(
-                                color: Colors.black26,
-                                thickness: 1,
-                                indent: 15,
-                                endIndent: 15,
-                                width: 20,
-                              ),
-                            ],
-                          ),
+                        prefixIcon: Icon(
+                          _usePhone ? Icons.phone_outlined : Icons.email_outlined,
+                          color: Colors.black54,
                         ),
                       ),
                     ),
@@ -188,22 +178,50 @@ class _LoginPageState extends State<LoginPage> {
                       onTap: _isSubmitting
                           ? null
                           : () async {
-                              final email = _phoneController.text.trim();
+                              final identifier = _identifierController.text.trim();
                               final password = _passwordController.text.trim();
 
-                              if (email.isEmpty || password.isEmpty) {
+                              if (identifier.isEmpty || password.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Please enter your email and password'),
+                                    content: Text('Please enter your identifier and password'),
                                     backgroundColor: Colors.redAccent,
                                   ),
                                 );
                                 return;
                               }
 
+                              if (_usePhone) {
+                                final phoneRegex = RegExp(r'^\+?[0-9\s-]{7,15}$');
+                                if (!phoneRegex.hasMatch(identifier)) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Please enter a valid phone number'),
+                                      backgroundColor: Colors.redAccent,
+                                    ),
+                                  );
+                                  return;
+                                }
+                              } else {
+                                final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                                if (!emailRegex.hasMatch(identifier)) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Please enter a valid email address'),
+                                      backgroundColor: Colors.redAccent,
+                                    ),
+                                  );
+                                  return;
+                                }
+                              }
+
                               setState(() => _isSubmitting = true);
                               try {
-                                final result = await AuthService.login(email: email, password: password);
+                                final result = await AuthService.login(
+                                  email: _usePhone ? null : identifier,
+                                  phoneNumber: _usePhone ? identifier : null,
+                                  password: password,
+                                );
                                 if (result['success'] == true) {
                                   final user = result['user'];
                                   currentUser.name = user['name'] ?? currentUser.name;
@@ -274,6 +292,32 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildModeChip({required String label, required bool selected}) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _usePhone = label == 'Phone';
+          _identifierController.clear();
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFF764697) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFF764697), width: 1),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.poppins(
+            color: selected ? Colors.white : const Color(0xFF764697),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }

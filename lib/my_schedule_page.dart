@@ -6,6 +6,7 @@ import 'settings_page.dart';
 import 'my_activities_page.dart';
 import 'workout_fitness_page.dart';
 import 'add_schedule_page.dart';
+import 'services/notification_service.dart';
 
 class ScheduleItem {
   String text;
@@ -30,10 +31,12 @@ class MySchedulePage extends StatefulWidget {
 
 class _MySchedulePageState extends State<MySchedulePage> {
   late List<DateTime> calendarDays;
+  final AppNotificationService _notifications = AppNotificationService.instance;
   Map<String, List<ScheduleItem>> scheduleData = {};
   final DateTime today = DateTime.now();
   late DateTime selectedDate;
   int? selectedTaskIndex;
+  bool _showDatePicker = false;
 
   String _dateToKey(DateTime date) => DateFormat('yyyy-MM-dd').format(date);
 
@@ -48,29 +51,6 @@ class _MySchedulePageState extends State<MySchedulePage> {
       return today.subtract(Duration(days: 3 - index));
     });
 
-    // Initialize with some default data for today
-    scheduleData[_dateToKey(today)] = [
-      ScheduleItem(
-        text: "Workout by 7am",
-        bgColor: Colors.white.withValues(alpha: 0.2),
-        textColor: Colors.black87,
-      ),
-      ScheduleItem(
-        text: "Breakfast by 9am",
-        bgColor: const Color(0xFFF5F5F5),
-        textColor: Colors.lightBlue,
-      ),
-      ScheduleItem(
-        text: "Morning Refresh",
-        bgColor: Colors.grey[400]!,
-        textColor: Colors.black87,
-      ),
-      ScheduleItem(
-        text: "Meeting by 12pm\nVia Google meet\nShareholders delegations",
-        bgColor: Colors.grey[400]!,
-        textColor: Colors.black87,
-      ),
-    ];
   }
 
   void _addNewTask() async {
@@ -85,11 +65,13 @@ class _MySchedulePageState extends State<MySchedulePage> {
         if (!scheduleData.containsKey(key)) {
           scheduleData[key] = [];
         }
+        final activity = result['activity'] as String;
         scheduleData[key]!.add(ScheduleItem(
-          text: result['activity'],
+          text: activity,
           bgColor: Colors.white,
           textColor: Colors.black87,
         ));
+        _notifications.addNotification('Schedule reminder: $activity');
       });
     }
   }
@@ -154,12 +136,19 @@ class _MySchedulePageState extends State<MySchedulePage> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  Text(
-                    DateFormat('MMMM d, yyyy').format(selectedDate),
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      color: const Color(0xFFE1CDE3),
-                      fontWeight: FontWeight.w500,
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _showDatePicker = !_showDatePicker;
+                      });
+                    },
+                    child: Text(
+                      DateFormat('MMMM d, yyyy').format(selectedDate),
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        color: const Color(0xFFE1CDE3),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   Text(
@@ -174,6 +163,31 @@ class _MySchedulePageState extends State<MySchedulePage> {
                       color: const Color(0xFF270530),
                     ),
                   ),
+                  if (_showDatePicker)
+                    Container(
+                      margin: const EdgeInsets.only(top: 12),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.95),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: SizedBox(
+                        height: 220,
+                        width: double.infinity,
+                        child: CalendarDatePicker(
+                          initialDate: selectedDate,
+                          firstDate: today.subtract(const Duration(days: 365)),
+                          lastDate: today,
+                          onDateChanged: (date) {
+                            setState(() {
+                              selectedDate = date;
+                              selectedTaskIndex = null;
+                              _showDatePicker = false;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -231,27 +245,42 @@ class _MySchedulePageState extends State<MySchedulePage> {
 
             // 4. Vertical Timeline & Schedule Cards
             Expanded(
-              child: Stack(
-                children: [
-                  // Vertical Tracking Line
-                  Positioned(
-                    left: 36,
-                    top: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 2,
-                      color: Colors.white,
+              child: _currentItems.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: Text(
+                          'No schedule for this day',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: const Color(0xFFE1CDE3),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    )
+                  : Stack(
+                      children: [
+                        // Vertical Tracking Line
+                        Positioned(
+                          left: 36,
+                          top: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: 2,
+                            color: Colors.white,
+                          ),
+                        ),
+                        ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          itemCount: _currentItems.length,
+                          itemBuilder: (context, index) {
+                            return _buildScheduleItem(index);
+                          },
+                        ),
+                      ],
                     ),
-                  ),
-                  ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    itemCount: _currentItems.length,
-                    itemBuilder: (context, index) {
-                      return _buildScheduleItem(index);
-                    },
-                  ),
-                ],
-              ),
             ),
             
             // 5. Floating Action Button Accent

@@ -13,6 +13,7 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   bool _isSubmitting = false;
@@ -21,6 +22,7 @@ class _SignUpPageState extends State<SignUpPage> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     _usernameController.dispose();
     super.dispose();
@@ -103,8 +105,19 @@ class _SignUpPageState extends State<SignUpPage> {
                   // Name Input
                   _buildRoundedTextField(hint: "Name", controller: _nameController),
                   const SizedBox(height: 15),
-                  // Email or Phone Input
-                  _buildRoundedTextField(hint: "Email or phone", controller: _emailController),
+                  _buildRoundedTextField(
+                    hint: "Email address",
+                    controller: _emailController,
+                    prefixIcon: const Icon(Icons.email_outlined, color: Colors.black54),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 15),
+                  _buildRoundedTextField(
+                    hint: "Phone number",
+                    controller: _phoneController,
+                    prefixIcon: const Icon(Icons.phone_outlined, color: Colors.black54),
+                    keyboardType: TextInputType.phone,
+                  ),
                   const SizedBox(height: 15),
                   // Password Input
                   _buildRoundedTextField(
@@ -126,10 +139,11 @@ class _SignUpPageState extends State<SignUpPage> {
                           : () async {
                               String name = _nameController.text.trim();
                               String email = _emailController.text.trim();
+                              String phoneNumber = _phoneController.text.trim();
                               String password = _passwordController.text.trim();
                               String username = _usernameController.text.trim();
 
-                              if (name.isEmpty || email.isEmpty || password.isEmpty || username.isEmpty) {
+                              if (name.isEmpty || email.isEmpty || phoneNumber.isEmpty || password.isEmpty || username.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('Please fill in all fields'),
@@ -139,10 +153,22 @@ class _SignUpPageState extends State<SignUpPage> {
                                 return;
                               }
 
-                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+                              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                              if (!emailRegex.hasMatch(email)) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('Please enter a valid email address'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              final phoneRegex = RegExp(r'^\+?[0-9\s-]{7,15}$');
+                              if (!phoneRegex.hasMatch(phoneNumber)) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Please enter a valid phone number'),
                                     backgroundColor: Colors.redAccent,
                                   ),
                                 );
@@ -166,11 +192,13 @@ class _SignUpPageState extends State<SignUpPage> {
                                   email: email,
                                   password: password,
                                   username: username,
+                                  phoneNumber: phoneNumber,
                                 );
 
                                 if (result['success'] == true) {
                                   currentUser.name = name;
                                   currentUser.email = email;
+                                  currentUser.phoneNumber = phoneNumber;
                                   currentUser.username = username;
                                   currentUser.password = password;
                                   currentUser.streak = 1;
@@ -185,7 +213,16 @@ class _SignUpPageState extends State<SignUpPage> {
                                     ),
                                   );
                                   Navigator.pop(context);
+                                  return;
                                 }
+
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text((result['message'] ?? 'Signup failed').toString()),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
                               } catch (error) {
                                 if (!mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -251,6 +288,7 @@ class _SignUpPageState extends State<SignUpPage> {
     bool obscureText = false,
     Widget? prefixIcon,
     TextEditingController? controller,
+    TextInputType? keyboardType,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -260,6 +298,7 @@ class _SignUpPageState extends State<SignUpPage> {
       child: TextField(
         controller: controller,
         obscureText: obscureText,
+        keyboardType: keyboardType,
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: GoogleFonts.poppins(color: Colors.black38),
