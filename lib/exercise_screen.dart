@@ -83,7 +83,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF764697).withValues(alpha: 0.1),
+                    color: const Color(0xFF764697).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(

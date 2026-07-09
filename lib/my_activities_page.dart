@@ -168,7 +168,7 @@ class _MyActivitiesPageState extends State<MyActivitiesPage> {
                   _buildTimeframeChip("Yearly"),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               if (isUnlocked) ...[
                 // 4. Posture Metric Cards
