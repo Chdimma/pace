@@ -5,6 +5,8 @@ import 'settings_page.dart';
 import 'my_activities_page.dart';
 import 'my_schedule_page.dart';
 import 'exercise_library_page.dart';
+import 'exercise_screen.dart';
+import 'models/exercise.dart';
 import 'models/user_data.dart';
 
 class WorkoutFitnessPage extends StatefulWidget {
@@ -50,6 +52,32 @@ class _WorkoutFitnessPageState extends State<WorkoutFitnessPage> {
       _currentPopular = available.take(3).toList();
     });
   }
+
+  /// Finds an Exercise object by matching the title from the mock data sets.
+  Exercise? _findExerciseByTitle(String title) {
+    // Search in popular exercises first
+    for (final ex in Exercise.popularExercises()) {
+      if (ex.title == title) return ex;
+    }
+    // Then search in recommended exercises
+    for (final ex in Exercise.recommendedExercises()) {
+      if (ex.title == title) return ex;
+    }
+    return null;
+  }
+
+  void _navigateToExercise(String title, String duration, String level) {
+    // Look up the full Exercise object; if not found, create a minimal one
+    final exercise = _findExerciseByTitle(title) ??
+        Exercise(title: title, duration: duration, level: level);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ExerciseScreen(exercise: exercise),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -295,7 +323,7 @@ class _WorkoutFitnessPageState extends State<WorkoutFitnessPage> {
     required String tag,
   }) {
     return GestureDetector(
-      onTap: () => _showExerciseDetail(title, duration, intensity),
+      onTap: () => _navigateToExercise(title, duration, intensity),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(20),
@@ -355,51 +383,9 @@ class _WorkoutFitnessPageState extends State<WorkoutFitnessPage> {
     );
   }
 
-  void _showExerciseDetail(String title, String duration, String intensity) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(32),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(width: 40, height: 4, color: Colors.black12),
-            const SizedBox(height: 24),
-            Text(title, style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text("$duration • $intensity Intensity", style: GoogleFonts.poppins(color: Colors.black54)),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF764697),
-                minimumSize: const Size(double.infinity, 56),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-              onPressed: () {
-                setState(() {
-                  currentUser.activeExerciseTitle = title;
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Started: $title. This will now be hidden from Popular lists.")),
-                );
-              },
-              child: Text("Start Exercise", style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildPopularItem({required String title, required String duration, required Color color}) {
     return GestureDetector(
-      onTap: () => _showExerciseDetail(title, duration, "Medium"),
+      onTap: () => _navigateToExercise(title, duration, "Medium"),
       child: Container(
         width: 160,
         padding: const EdgeInsets.all(20),
