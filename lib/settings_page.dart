@@ -9,7 +9,7 @@ import 'account_page.dart';
 import 'my_activities_page.dart';
 import 'my_schedule_page.dart';
 import 'workout_fitness_page.dart';
-import 'solana_page.dart';
+import 'check_records_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -112,7 +112,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const SolanaPage(),
+                              builder: (context) => const CheckRecordsPage(),
                             ),
                           );
                         },
