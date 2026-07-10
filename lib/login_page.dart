@@ -101,14 +101,14 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFF0D0D0D),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 24),
+              const SizedBox(height: 48),
               // Brand wordmark
               Row(
                 children: [
@@ -131,33 +131,14 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 60),
-              // Subtle gradient accent dot (center-aligned)
-              Center(
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        const Color(0xFF764697).withValues(alpha: 0.25),
-                        const Color(0xFF764697).withValues(alpha: 0.05),
-                        Colors.transparent,
-                      ],
-                      stops: const [0.0, 0.5, 1.0],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 80),
               // Welcome subtitle
               Text(
                 'Welcome back',
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w300,
-                  color: const Color(0xFF999999),
+                  color: const Color(0xFF888888),
                 ),
               ),
               const SizedBox(height: 4),
@@ -167,7 +148,7 @@ class _LoginPageState extends State<LoginPage> {
                 style: GoogleFonts.poppins(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1A1A1A),
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 48),
@@ -180,21 +161,25 @@ class _LoginPageState extends State<LoginPage> {
                   controller: _identifierController,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
                   decoration: InputDecoration(
                     hintText: 'Email or phone number',
                     hintStyle: GoogleFonts.poppins(
-                      color: const Color(0xFFAAAAAA),
+                      color: const Color(0xFF666666),
                       fontSize: 14,
                     ),
                     prefixIcon: Icon(
                       Icons.email_outlined,
                       color: _emailFieldFocused
                           ? const Color(0xFF764697)
-                          : const Color(0xFF999999),
+                          : const Color(0xFF666666),
                       size: 20,
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: const Color(0xFF1A1A1A),
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 18,
                       horizontal: 16,
@@ -202,14 +187,14 @@ class _LoginPageState extends State<LoginPage> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(
-                        color: Color(0xFFE0E0E0),
+                        color: Color(0xFF333333),
                         width: 1,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(
-                        color: Color(0xFFE0E0E0),
+                        color: Color(0xFF333333),
                         width: 1,
                       ),
                     ),
@@ -234,17 +219,21 @@ class _LoginPageState extends State<LoginPage> {
                   obscureText: _obscurePassword,
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _handleLogin(),
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
                   decoration: InputDecoration(
                     hintText: 'Password',
                     hintStyle: GoogleFonts.poppins(
-                      color: const Color(0xFFAAAAAA),
+                      color: const Color(0xFF666666),
                       fontSize: 14,
                     ),
                     prefixIcon: Icon(
                       Icons.lock_outline,
                       color: _passwordFieldFocused
                           ? const Color(0xFF764697)
-                          : const Color(0xFF999999),
+                          : const Color(0xFF666666),
                       size: 20,
                     ),
                     suffixIcon: IconButton(
@@ -252,7 +241,7 @@ class _LoginPageState extends State<LoginPage> {
                         _obscurePassword
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
-                        color: const Color(0xFF999999),
+                        color: const Color(0xFF666666),
                         size: 20,
                       ),
                       onPressed: () {
@@ -260,7 +249,7 @@ class _LoginPageState extends State<LoginPage> {
                       },
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: const Color(0xFF1A1A1A),
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 18,
                       horizontal: 16,
@@ -268,14 +257,14 @@ class _LoginPageState extends State<LoginPage> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(
-                        color: Color(0xFFE0E0E0),
+                        color: Color(0xFF333333),
                         width: 1,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(
-                        color: Color(0xFFE0E0E0),
+                        color: Color(0xFF333333),
                         width: 1,
                       ),
                     ),
@@ -324,9 +313,8 @@ class _LoginPageState extends State<LoginPage> {
                   onPressed: _isSubmitting ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF764697),
-                    disabledBackgroundColor: const Color(0xFF764697).withValues(alpha: 0.6),
+                    disabledBackgroundColor: const Color(0xFF764697).withValues(alpha: 0.4),
                     elevation: 0,
-                    shadowColor: const Color(0xFF764697).withValues(alpha: 0.3),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -357,7 +345,7 @@ class _LoginPageState extends State<LoginPage> {
                   text: TextSpan(
                     style: GoogleFonts.poppins(
                       fontSize: 14,
-                      color: const Color(0xFF666666),
+                      color: const Color(0xFF888888),
                     ),
                     children: [
                       const TextSpan(text: "Don't have an account? "),
@@ -381,97 +369,9 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
-              // Divider with "Or continue with"
-              Row(
-                children: [
-                  const Expanded(child: Divider(color: Color(0xFFEEEEEE))),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'Or continue with',
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xFF999999),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  const Expanded(child: Divider(color: Color(0xFFEEEEEE))),
-                ],
-              ),
-              const SizedBox(height: 20),
-              // Social login icons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildSocialButton(
-                    icon: Icons.apple,
-                    onTap: () {
-                      // Placeholder for Apple sign-in
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Apple sign-in coming soon'),
-                          backgroundColor: Color(0xFF764697),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 24),
-                  _buildSocialButton(
-                    icon: Icons.g_mobiledata,
-                    onTap: () {
-                      // Placeholder for Google sign-in
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Google sign-in coming soon'),
-                          backgroundColor: Color(0xFF764697),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 24),
-                  _buildSocialButton(
-                    icon: Icons.alternate_email,
-                    onTap: () {
-                      // Placeholder for X sign-in
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('X sign-in coming soon'),
-                          backgroundColor: Color(0xFF764697),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
               const SizedBox(height: 40),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSocialButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: const Color(0xFFDDDDDD),
-            width: 1.5,
-          ),
-        ),
-        child: Icon(
-          icon,
-          color: const Color(0xFF444444),
-          size: 22,
         ),
       ),
     );

@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/user_data.dart';
 import 'services/auth_service.dart';
+
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
 
@@ -17,6 +18,13 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   bool _isSubmitting = false;
+  bool _obscurePassword = true;
+
+  bool _nameFieldFocused = false;
+  bool _emailFieldFocused = false;
+  bool _phoneFieldFocused = false;
+  bool _passwordFieldFocused = false;
+  bool _usernameFieldFocused = false;
 
   @override
   void dispose() {
@@ -28,284 +36,525 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5), // Light grey background
-      body: Stack(
-        children: [
-          // Top-left purple linear gradient
-          Positioned(
-            top: -size.width * 0.2,
-            left: -size.width * 0.2,
-            child: Container(
-              width: size.width * 0.8,
-              height: size.width * 0.8,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [
-                    Color(0xFF764697),
-                    Color(0x00764697),
-                  ],
-                ),
-              ),
-            ),
+  Future<void> _handleSignUp() async {
+    String name = _nameController.text.trim();
+    String email = _emailController.text.trim();
+    String phoneNumber = _phoneController.text.trim();
+    String password = _passwordController.text.trim();
+    String username = _usernameController.text.trim();
+
+    if (name.isEmpty ||
+        email.isEmpty ||
+        phoneNumber.isEmpty ||
+        password.isEmpty ||
+        username.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all fields'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid email address'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    final phoneRegex = RegExp(r'^\+?[0-9\s-]{7,15}$');
+    if (!phoneRegex.hasMatch(phoneNumber)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid phone number'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password must be at least 6 characters'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    try {
+      final result = await AuthService.signup(
+        name: name,
+        email: email,
+        password: password,
+        username: username,
+        phoneNumber: phoneNumber,
+      );
+
+      if (result['success'] == true) {
+        currentUser.name = name;
+        currentUser.email = email;
+        currentUser.phoneNumber = phoneNumber;
+        currentUser.username = username;
+        currentUser.password = password;
+        currentUser.streak = 1;
+        currentUser.lastLoginDate = DateTime.now();
+        currentUser.joinDate = DateTime.now();
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully! Please sign in.'),
+            backgroundColor: Color(0xFF764697),
           ),
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Back arrow icon
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    alignment: Alignment.centerLeft,
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    }
-                  ),
-                  const SizedBox(height: 200), // Spacing to start midway down
-                  // "Create account" title
-                  Text(
-                    'Create account',
-                    style: GoogleFonts.poppins(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF000000),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  // Signin text link
-                  RichText(
-                    text: TextSpan(
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        color: Colors.black54,
-                      ),
-                      children: [
-                        const TextSpan(text: "Already have an account? "),
-                        TextSpan(
-                          text: "sign in",
-                          style: const TextStyle(
-                            color: Color(0xFF4F0382),
-                            fontWeight: FontWeight.bold,
-                          ),
-                          recognizer: TapGestureRecognizer()..onTap = () {
-                            Navigator.pop(context); // Takes you back to the login page!
-                          }
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  // Name Input
-                  _buildRoundedTextField(hint: "Name", controller: _nameController),
-                  const SizedBox(height: 15),
-                  _buildRoundedTextField(
-                    hint: "Email address",
-                    controller: _emailController,
-                    prefixIcon: const Icon(Icons.email_outlined, color: Colors.black54),
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: 15),
-                  _buildRoundedTextField(
-                    hint: "Phone number",
-                    controller: _phoneController,
-                    prefixIcon: const Icon(Icons.phone_outlined, color: Colors.black54),
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 15),
-                  // Password Input
-                  _buildRoundedTextField(
-                    hint: "Password",
-                    obscureText: true,
-                    controller: _passwordController,
-                    prefixIcon: const Icon(Icons.lock_outline, color: Colors.black54),
-                  ),
-                  const SizedBox(height: 15),
-                  // Username Input
-                  _buildRoundedTextField(hint: "Username", controller: _usernameController),
-                  const SizedBox(height: 60),
-                  // Sign up Button
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: GestureDetector(
-                      onTap: _isSubmitting
-                          ? null
-                          : () async {
-                              String name = _nameController.text.trim();
-                              String email = _emailController.text.trim();
-                              String phoneNumber = _phoneController.text.trim();
-                              String password = _passwordController.text.trim();
-                              String username = _usernameController.text.trim();
+        );
+        Navigator.pop(context);
+        return;
+      }
 
-                              if (name.isEmpty || email.isEmpty || phoneNumber.isEmpty || password.isEmpty || username.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Please fill in all fields'),
-                                    backgroundColor: Colors.redAccent,
-                                  ),
-                                );
-                                return;
-                              }
-
-                              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                              if (!emailRegex.hasMatch(email)) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Please enter a valid email address'),
-                                    backgroundColor: Colors.redAccent,
-                                  ),
-                                );
-                                return;
-                              }
-
-                              final phoneRegex = RegExp(r'^\+?[0-9\s-]{7,15}$');
-                              if (!phoneRegex.hasMatch(phoneNumber)) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Please enter a valid phone number'),
-                                    backgroundColor: Colors.redAccent,
-                                  ),
-                                );
-                                return;
-                              }
-
-                              if (password.length < 6) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Password must be at least 6 characters'),
-                                    backgroundColor: Colors.redAccent,
-                                  ),
-                                );
-                                return;
-                              }
-
-                              setState(() => _isSubmitting = true);
-                              try {
-                                final result = await AuthService.signup(
-                                  name: name,
-                                  email: email,
-                                  password: password,
-                                  username: username,
-                                  phoneNumber: phoneNumber,
-                                );
-
-                                if (result['success'] == true) {
-                                  currentUser.name = name;
-                                  currentUser.email = email;
-                                  currentUser.phoneNumber = phoneNumber;
-                                  currentUser.username = username;
-                                  currentUser.password = password;
-                                  currentUser.streak = 1;
-                                  currentUser.lastLoginDate = DateTime.now();
-                                  currentUser.joinDate = DateTime.now();
-
-                                  if (!mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Account created successfully! Please sign in.'),
-                                      backgroundColor: Color(0xFF764697),
-                                    ),
-                                  );
-                                  Navigator.pop(context);
-                                  return;
-                                }
-
-                                if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text((result['message'] ?? 'Signup failed').toString()),
-                                    backgroundColor: Colors.redAccent,
-                                  ),
-                                );
-                              } catch (error) {
-                                if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(error.toString().replaceFirst('Exception: ', '')),
-                                    backgroundColor: Colors.redAccent,
-                                  ),
-                                );
-                              } finally {
-                                if (mounted) {
-                                  setState(() => _isSubmitting = false);
-                                }
-                              }
-                            },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 20),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF764697),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _isSubmitting ? 'Creating account...' : 'Sign up',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 15),
-                            Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: Colors.white24,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                Icons.arrow_forward,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40), // Bottom padding for scroll
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text((result['message'] ?? 'Signup failed').toString()),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
-  Widget _buildRoundedTextField({
-    required String hint,
-    bool obscureText = false,
-    Widget? prefixIcon,
-    TextEditingController? controller,
-    TextInputType? keyboardType,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFE1CDE3),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: GoogleFonts.poppins(color: Colors.black38),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-              vertical: 20, horizontal: 20),
-          prefixIcon: prefixIcon,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0D0D0D),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 48),
+              // Brand wordmark
+              Row(
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFF764697),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Pace',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF764697),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 80),
+              // Subtitle
+              Text(
+                'Get started',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w300,
+                  color: const Color(0xFF888888),
+                ),
+              ),
+              const SizedBox(height: 4),
+              // Headline
+              Text(
+                'Create your account',
+                style: GoogleFonts.poppins(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 48),
+              // Full Name field
+              FocusScope(
+                onFocusChange: (focused) {
+                  setState(() => _nameFieldFocused = focused);
+                },
+                child: TextField(
+                  controller: _nameController,
+                  textInputAction: TextInputAction.next,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Full name',
+                    hintStyle: GoogleFonts.poppins(
+                      color: const Color(0xFF666666),
+                      fontSize: 14,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.person_outline,
+                      color: _nameFieldFocused
+                          ? const Color(0xFF764697)
+                          : const Color(0xFF666666),
+                      size: 20,
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFF1A1A1A),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 18,
+                      horizontal: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF333333),
+                        width: 1,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF333333),
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF764697),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Email field
+              FocusScope(
+                onFocusChange: (focused) {
+                  setState(() => _emailFieldFocused = focused);
+                },
+                child: TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Email address',
+                    hintStyle: GoogleFonts.poppins(
+                      color: const Color(0xFF666666),
+                      fontSize: 14,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.email_outlined,
+                      color: _emailFieldFocused
+                          ? const Color(0xFF764697)
+                          : const Color(0xFF666666),
+                      size: 20,
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFF1A1A1A),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 18,
+                      horizontal: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF333333),
+                        width: 1,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF333333),
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF764697),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Phone number field
+              FocusScope(
+                onFocusChange: (focused) {
+                  setState(() => _phoneFieldFocused = focused);
+                },
+                child: TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.next,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Phone number',
+                    hintStyle: GoogleFonts.poppins(
+                      color: const Color(0xFF666666),
+                      fontSize: 14,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.phone_outlined,
+                      color: _phoneFieldFocused
+                          ? const Color(0xFF764697)
+                          : const Color(0xFF666666),
+                      size: 20,
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFF1A1A1A),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 18,
+                      horizontal: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF333333),
+                        width: 1,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF333333),
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF764697),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Password field
+              FocusScope(
+                onFocusChange: (focused) {
+                  setState(() => _passwordFieldFocused = focused);
+                },
+                child: TextField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  textInputAction: TextInputAction.next,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Password',
+                    hintStyle: GoogleFonts.poppins(
+                      color: const Color(0xFF666666),
+                      fontSize: 14,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.lock_outline,
+                      color: _passwordFieldFocused
+                          ? const Color(0xFF764697)
+                          : const Color(0xFF666666),
+                      size: 20,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: const Color(0xFF666666),
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        setState(() => _obscurePassword = !_obscurePassword);
+                      },
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFF1A1A1A),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 18,
+                      horizontal: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF333333),
+                        width: 1,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF333333),
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF764697),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Username field
+              FocusScope(
+                onFocusChange: (focused) {
+                  setState(() => _usernameFieldFocused = focused);
+                },
+                child: TextField(
+                  controller: _usernameController,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _handleSignUp(),
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Username',
+                    hintStyle: GoogleFonts.poppins(
+                      color: const Color(0xFF666666),
+                      fontSize: 14,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.alternate_email_outlined,
+                      color: _usernameFieldFocused
+                          ? const Color(0xFF764697)
+                          : const Color(0xFF666666),
+                      size: 20,
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFF1A1A1A),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 18,
+                      horizontal: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF333333),
+                        width: 1,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF333333),
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF764697),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+              // Sign Up button
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _isSubmitting ? null : _handleSignUp,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF764697),
+                    disabledBackgroundColor:
+                        const Color(0xFF764697).withValues(alpha: 0.4),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : Text(
+                          'Create Account',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Signin link
+              Center(
+                child: RichText(
+                  text: TextSpan(
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: const Color(0xFF888888),
+                    ),
+                    children: [
+                      const TextSpan(text: "Already have an account? "),
+                      TextSpan(
+                        text: "Sign in",
+                        style: const TextStyle(
+                          color: Color(0xFF764697),
+                          fontWeight: FontWeight.bold,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Navigator.pop(context);
+                          },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
