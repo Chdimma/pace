@@ -112,7 +112,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const CheckRecordsPage(),
+                              builder: (context) => CheckRecordsPage(),
                             ),
                           );
                         },
