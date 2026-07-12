@@ -1,15 +1,48 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:google_fonts/google_fonts.dart';
 import 'settings_page.dart';
 import 'notification_page.dart';
-import 'about_page.dart';
 import 'my_activities_page.dart';
 import 'my_schedule_page.dart';
 import 'workout_fitness_page.dart';
 import 'models/user_data.dart';
 import 'services/notification_service.dart';
 
+// ─── Color Palette ───────────────────────────────────────────────────────────
+const Color _bgPrimary = Color(0xFF0D0D0D);
+const Color _surface = Color(0xFF1A1A2E);
+const Color _surfaceElevated = Color(0xFF232340);
+const Color _accentPrimary = Color(0xFFB388FF);
+const Color _textPrimary = Color(0xFFEDE7F6);
+const Color _textSecondary = Color(0xFFB39DDB);
+const Color _textMuted = Color(0xFF6A5ACD);
+const Color _statusGreen = Color(0xFF00E676);
+const Color _statusRed = Color(0xFFFF5252);
+const Color _divider = Color(0xFF2D2D44);
+const Color _inactiveIcon = Color(0xFF4A4A6A);
+
+// ─── Typography Helpers ──────────────────────────────────────────────────────
+const TextStyle _capsLabel = TextStyle(
+  fontSize: 11,
+  fontWeight: FontWeight.w600,
+  letterSpacing: 1.8,
+  color: _textMuted,
+);
+
+const TextStyle _metricValue = TextStyle(
+  fontSize: 28,
+  fontWeight: FontWeight.w700,
+  color: _textPrimary,
+);
+
+const TextStyle _bodyText = TextStyle(
+  fontSize: 14,
+  fontWeight: FontWeight.w400,
+  color: _textSecondary,
+  height: 1.6,
+);
+
+// ─── Home Page ───────────────────────────────────────────────────────────────
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -24,16 +57,12 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Check and update the daily streak whenever user enters Home
     currentUser.updateStreak();
-
-    // Ticking timer for the "Next stretch" countdown
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {});
       }
     });
-
   }
 
   @override
@@ -45,303 +74,431 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFC3AACA), // Light-purple background
+      backgroundColor: _bgPrimary,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Greeting Layout
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Welcome back,",
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      Text(
-                        "${currentUser.username}!",
-                        style: GoogleFonts.poppins(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Stack(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.notifications_none_outlined, size: 28),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder: (context, animation1, animation2) =>
-                                  const NotificationPage(),
-                              transitionDuration: Duration.zero,
-                              reverseTransitionDuration: Duration.zero,
-                            ),
-                          );
-                        },
-                        color: Colors.black87,
-                      ),
-                      Positioned(
-                        right: 8,
-                        top: 8,
-                        child: ValueListenableBuilder<int>(
-                          valueListenable: _notifications.unreadCountNotifier,
-                          builder: (context, unreadCount, _) {
-                            if (unreadCount <= 0) {
-                              return const SizedBox.shrink();
-                            }
+              const SizedBox(height: 8),
+              // ── Section 1: Header ──────────────────────────────────────
+              _buildHeader(),
+              const SizedBox(height: 20),
 
-                            return Container(
-                              width: 10,
-                              height: 10,
-                              decoration: const BoxDecoration(
-                                color: Colors.redAccent,
-                                shape: BoxShape.circle,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+              // ── Section 2: Status Pill ─────────────────────────────────
+              _StatusPill(isConnected: currentUser.isBotConnected),
+              const SizedBox(height: 28),
+
+              // ── Section 3: Posture Score Ring ──────────────────────────
+              _PostureScoreCard(score: currentUser.postureScore),
+              const SizedBox(height: 20),
+
+              // ── Section 4: Metric Row ──────────────────────────────────
+              Row(
+                children: [
+                  Expanded(
+                    child: _MetricTile(
+                      label: "STREAK",
+                      value: "${currentUser.streak} days",
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _MetricTile(
+                      label: "NEXT STRETCH",
+                      value: currentUser.getNextStretchTimer(),
+                      valueColor: currentUser.getNextStretchTimer() == "Ready!"
+                          ? _statusGreen
+                          : null,
+                    ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 20),
+
+              // ── Section 5: Insight Card ────────────────────────────────
+              _InsightCard(insight: currentUser.getDailyInsight()),
+              const SizedBox(height: 20),
+
+              // ── Section 6: Activity Sparkline ──────────────────────────
+              _ActivityChart(
+                data: currentUser.getGoodHistoryFor("Weekly"),
               ),
               const SizedBox(height: 16),
-
-              // Connection Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: currentUser.isBotConnected 
-                      ? const Color(0xFFF5EEF7) 
-                      : Colors.red.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      currentUser.isBotConnected ? Icons.wifi : Icons.wifi_off,
-                      size: 16,
-                      color: currentUser.isBotConnected ? Colors.purple : Colors.red,
-                    ),
-                    const SizedBox(width: 8),
-                    RichText(
-                      text: TextSpan(
-                        style: GoogleFonts.poppins(color: Colors.black87, fontSize: 14),
-                        children: [
-                          const TextSpan(text: "Connection status: "),
-                          TextSpan(
-                            text: currentUser.connectionStatusText,
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.bold,
-                              color: currentUser.isBotConnected ? Colors.black87 : Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Daily Insight Section
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.lightbulb_outline, color: Colors.amber, size: 24),
-                        const SizedBox(width: 8),
-                        Text(
-                          "Daily Insight:",
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      currentUser.getDailyInsight(),
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.black54,
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Posture Ring Segment
-              Text(
-                "POSTURE RING",
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.2,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Posture Ring Card
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Row(
-                  children: [
-                    // Dynamic thick posture ring
-                    SizedBox(
-                      width: 120,
-                      height: 120,
-                      child: CircularProgressIndicator(
-                        value: currentUser.postureScore / 100,
-                        strokeWidth: 20,
-                        backgroundColor: const Color(0xFFE1CDE3),
-                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF270530)),
-                      ),
-                    ),
-                    const SizedBox(width: 32),
-                    // Streak and Score labels
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildMetricLabel("Streak:", value: "${currentUser.streak} 🔥"),
-                        const SizedBox(height: 20),
-                        _buildMetricLabel("Score:", value: "${currentUser.postureScore}%"),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Footer Metric Cards Row
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Left Metric Box (Gradient)
-                  Expanded(
-                    child: Container(
-                      height: 200,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xFFEBE8EB), Color(0xFFA611A2)],
-                        ),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Next stretch:",
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            currentUser.getNextStretchTimer(),
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  // Right Metric Box (PACE)
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const AboutPage(),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        height: 200,
-                        alignment: Alignment.center,
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: Image.asset(
-                            'assets/pace_3d.png',
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
             ],
           ),
         ),
       ),
-      // Sticky Bottom Navigation Bar
-      bottomNavigationBar: Container(
-        height: 80,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(40),
-            topRight: Radius.circular(40),
+      // ── Section 7: Bottom Navigation ───────────────────────────────────
+      bottomNavigationBar: _AppBottomNav(currentIndex: 0),
+    );
+  }
+
+  // ── Header ───────────────────────────────────────────────────────────────
+  Widget _buildHeader() {
+    return SizedBox(
+      height: 64,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            currentUser.username,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w300,
+              color: _textPrimary,
+            ),
           ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildNavIcon(Icons.home_outlined, onTap: () {
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation1, animation2) =>
-                      const HomePage(),
-                  transitionDuration: Duration.zero,
-                  reverseTransitionDuration: Duration.zero,
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined, size: 24),
+                color: _textSecondary,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation1, animation2) =>
+                          const NotificationPage(),
+                      transitionDuration: Duration.zero,
+                      reverseTransitionDuration: Duration.zero,
+                    ),
+                  );
+                },
+              ),
+              Positioned(
+                right: 6,
+                top: 6,
+                child: ValueListenableBuilder<int>(
+                  valueListenable: _notifications.unreadCountNotifier,
+                  builder: (context, unreadCount, _) {
+                    if (unreadCount <= 0) {
+                      return const SizedBox.shrink();
+                    }
+                    return Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: _statusRed,
+                        shape: BoxShape.circle,
+                      ),
+                    );
+                  },
                 ),
-              );
-            }),
-            _buildNavIcon(Icons.star_outline, onTap: () {
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Status Pill ─────────────────────────────────────────────────────────────
+class _StatusPill extends StatelessWidget {
+  final bool isConnected;
+  const _StatusPill({required this.isConnected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(color: _divider, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: isConnected ? _statusGreen : _statusRed,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            isConnected ? "Online" : "Offline",
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: _textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Posture Score Card ──────────────────────────────────────────────────────
+class _PostureScoreCard extends StatelessWidget {
+  final int score;
+  const _PostureScoreCard({required this.score});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          SizedBox(
+            width: 160,
+            height: 160,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircularProgressIndicator(
+                  value: score / 100,
+                  strokeWidth: 14,
+                  backgroundColor: _divider,
+                  valueColor: const AlwaysStoppedAnimation<Color>(_accentPrimary),
+                ),
+                Text(
+                  "$score%",
+                  style: const TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w700,
+                    color: _textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            "POSTURE SCORE",
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 2.0,
+              color: _textMuted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Metric Tile ─────────────────────────────────────────────────────────────
+class _MetricTile extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+
+  const _MetricTile({
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 110,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _surfaceElevated,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(label, style: _capsLabel),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: _metricValue.copyWith(
+              color: valueColor ?? _textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Insight Card ────────────────────────────────────────────────────────────
+class _InsightCard extends StatelessWidget {
+  final String insight;
+  const _InsightCard({required this.insight});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 3,
+            height: 100,
+            decoration: BoxDecoration(
+              color: _accentPrimary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "TODAY'S INSIGHT",
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.5,
+                    color: _textMuted,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(insight, style: _bodyText),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Activity Sparkline ──────────────────────────────────────────────────────
+class _ActivityChart extends StatelessWidget {
+  final List<double> data;
+  const _ActivityChart({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "THIS WEEK",
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.5,
+              color: _textMuted,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 60,
+            width: double.infinity,
+            child: CustomPaint(
+              painter: _BarChartPainter(data: data, barColor: _accentPrimary),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Center(
+            child: Text(
+              "Good Posture Minutes",
+              style: TextStyle(
+                fontSize: 11,
+                color: _textMuted,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BarChartPainter extends CustomPainter {
+  final List<double> data;
+  final Color barColor;
+
+  _BarChartPainter({required this.data, required this.barColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (data.isEmpty) return;
+
+    final paint = Paint()
+      ..color = barColor.withValues(alpha: 0.8)
+      ..style = PaintingStyle.fill;
+
+    final maxVal = data.reduce((a, b) => a > b ? a : b);
+    if (maxVal == 0) return;
+
+    final barWidth = 8.0;
+    final totalWidth = data.length * barWidth + (data.length - 1) * 4.0;
+    final startX = (size.width - totalWidth) / 2;
+
+    for (int i = 0; i < data.length; i++) {
+      final barHeight = (data[i] / maxVal) * size.height;
+      final x = startX + i * (barWidth + 4.0);
+      final y = size.height - barHeight;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(x, y, barWidth, barHeight),
+          const Radius.circular(2),
+        ),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _BarChartPainter oldDelegate) {
+    return oldDelegate.data != data;
+  }
+}
+
+// ─── Bottom Navigation ───────────────────────────────────────────────────────
+class _AppBottomNav extends StatelessWidget {
+  final int currentIndex;
+  const _AppBottomNav({required this.currentIndex});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 72,
+      decoration: const BoxDecoration(
+        color: _bgPrimary,
+        border: Border(
+          top: BorderSide(color: _divider, width: 0.5),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _navItem(
+            icon: Icons.home,
+            isActive: currentIndex == 0,
+            onTap: () {},
+          ),
+          _navItem(
+            icon: Icons.star_outline,
+            isActive: currentIndex == 1,
+            onTap: () {
               Navigator.pushReplacement(
                 context,
                 PageRouteBuilder(
@@ -351,8 +508,12 @@ class _HomePageState extends State<HomePage> {
                   reverseTransitionDuration: Duration.zero,
                 ),
               );
-            }),
-            _buildNavIcon(Icons.access_time, onTap: () {
+            },
+          ),
+          _navItem(
+            icon: Icons.access_time,
+            isActive: currentIndex == 2,
+            onTap: () {
               Navigator.pushReplacement(
                 context,
                 PageRouteBuilder(
@@ -362,8 +523,12 @@ class _HomePageState extends State<HomePage> {
                   reverseTransitionDuration: Duration.zero,
                 ),
               );
-            }),
-            _buildNavIcon(Icons.directions_run, onTap: () {
+            },
+          ),
+          _navItem(
+            icon: Icons.directions_run,
+            isActive: currentIndex == 3,
+            onTap: () {
               Navigator.pushReplacement(
                 context,
                 PageRouteBuilder(
@@ -373,8 +538,12 @@ class _HomePageState extends State<HomePage> {
                   reverseTransitionDuration: Duration.zero,
                 ),
               );
-            }),
-            _buildNavIcon(Icons.settings_outlined, onTap: () {
+            },
+          ),
+          _navItem(
+            icon: Icons.settings_outlined,
+            isActive: currentIndex == 4,
+            onTap: () {
               Navigator.pushReplacement(
                 context,
                 PageRouteBuilder(
@@ -384,47 +553,30 @@ class _HomePageState extends State<HomePage> {
                   reverseTransitionDuration: Duration.zero,
                 ),
               );
-            }),
-          ],
-        ),
+            },
+          ),
+        ],
       ),
     );
   }
-  Widget _buildMetricLabel(String label, {String value = ""}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        if (value.isNotEmpty)
-          Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-            ),
-          )
-        else
-          Container(
-            width: 60,
-            height: 2,
-            color: Colors.black12,
-          ),
-      ],
-    );
-  }
 
-  Widget _buildNavIcon(IconData icon, {VoidCallback? onTap}) {
-    return IconButton(
-      icon: Icon(icon, color: Colors.black, size: 28),
-      onPressed: onTap ?? () {},
+  Widget _navItem({
+    required IconData icon,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: Icon(
+          isActive ? Icons.home : icon,
+          size: 24,
+          color: isActive ? _accentPrimary : _inactiveIcon,
+        ),
+      ),
     );
   }
 }
