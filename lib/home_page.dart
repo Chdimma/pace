@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'dart:async';
 import 'settings_page.dart';
 import 'notification_page.dart';
@@ -8,24 +8,25 @@ import 'workout_fitness_page.dart';
 import 'models/user_data.dart';
 import 'services/notification_service.dart';
 
-// ─── Color Palette ───────────────────────────────────────────────────────────
+// ─── Color Palette (mature dark theme) ──────────────────────────────────────
 const Color _bgPrimary = Color(0xFF0D0D0D);
-const Color _surface = Color(0xFF1A1A2E);
-const Color _surfaceElevated = Color(0xFF232340);
-const Color _accentPrimary = Color(0xFFB388FF);
-const Color _textPrimary = Color(0xFFEDE7F6);
-const Color _textSecondary = Color(0xFFB39DDB);
-const Color _textMuted = Color(0xFF6A5ACD);
-const Color _statusGreen = Color(0xFF00E676);
-const Color _statusRed = Color(0xFFFF5252);
-const Color _divider = Color(0xFF2D2D44);
-const Color _inactiveIcon = Color(0xFF4A4A6A);
+const Color _surface = Color(0xFF161616);
+const Color _surfaceCard = Color(0xFF222222);
+const Color _accentPrimary = Color(0xFF764697);
+const Color _accentSoft = Color(0xFF9C6ADE);
+const Color _textPrimary = Color(0xFFF0F0F0);
+const Color _textSecondary = Color(0xFFB0B0B0);
+const Color _textMuted = Color(0xFF777777);
+const Color _statusGreen = Color(0xFF4CAF50);
+const Color _statusRed = Color(0xFFE53935);
+const Color _divider = Color(0xFF2A2A2A);
+const Color _inactiveIcon = Color(0xFF555555);
 
 // ─── Typography Helpers ──────────────────────────────────────────────────────
 const TextStyle _capsLabel = TextStyle(
   fontSize: 11,
   fontWeight: FontWeight.w600,
-  letterSpacing: 1.8,
+  letterSpacing: 1.4,
   color: _textMuted,
 );
 
@@ -82,25 +83,18 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 8),
-              // ── Section 1: Header ──────────────────────────────────────
               _buildHeader(),
-              const SizedBox(height: 20),
-
-              // ── Section 2: Status Pill ─────────────────────────────────
+              const SizedBox(height: 24),
               _StatusPill(isConnected: currentUser.isBotConnected),
               const SizedBox(height: 28),
-
-              // ── Section 3: Posture Score Ring ──────────────────────────
               _PostureScoreCard(score: currentUser.postureScore),
               const SizedBox(height: 20),
-
-              // ── Section 4: Metric Row ──────────────────────────────────
               Row(
                 children: [
                   Expanded(
                     child: _MetricTile(
                       label: "STREAK",
-                      value: "${currentUser.streak} days",
+                      value: "🔥 ${currentUser.streak} days",
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -116,26 +110,18 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               const SizedBox(height: 20),
-
-              // ── Section 5: Insight Card ────────────────────────────────
               _InsightCard(insight: currentUser.getDailyInsight()),
               const SizedBox(height: 20),
-
-              // ── Section 6: Activity Sparkline ──────────────────────────
-              _ActivityChart(
-                data: currentUser.getGoodHistoryFor("Weekly"),
-              ),
+              _ActivityChart(data: currentUser.getGoodHistoryFor("Weekly")),
               const SizedBox(height: 16),
             ],
           ),
         ),
       ),
-      // ── Section 7: Bottom Navigation ───────────────────────────────────
       bottomNavigationBar: _AppBottomNav(currentIndex: 0),
     );
   }
 
-  // ── Header ───────────────────────────────────────────────────────────────
   Widget _buildHeader() {
     return SizedBox(
       height: 64,
@@ -174,9 +160,7 @@ class _HomePageState extends State<HomePage> {
                 child: ValueListenableBuilder<int>(
                   valueListenable: _notifications.unreadCountNotifier,
                   builder: (context, unreadCount, _) {
-                    if (unreadCount <= 0) {
-                      return const SizedBox.shrink();
-                    }
+                    if (unreadCount <= 0) return const SizedBox.shrink();
                     return Container(
                       width: 8,
                       height: 8,
@@ -246,37 +230,35 @@ class _PostureScoreCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
       decoration: BoxDecoration(
         color: _surface,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _divider, width: 0.5),
       ),
       child: Column(
         children: [
           SizedBox(
-            width: 160,
-            height: 160,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CircularProgressIndicator(
-                  value: score / 100,
-                  strokeWidth: 14,
-                  backgroundColor: _divider,
-                  valueColor: const AlwaysStoppedAnimation<Color>(_accentPrimary),
-                ),
-                Text(
-                  "$score%",
-                  style: const TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w700,
-                    color: _textPrimary,
-                  ),
-                ),
-              ],
+            width: 200,
+            height: 200,
+            child: CircularProgressIndicator(
+              value: score / 100,
+              strokeWidth: 16,
+              backgroundColor: const Color(0xFF2A2A2A),
+              valueColor: const AlwaysStoppedAnimation<Color>(_accentPrimary),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
+          Text(
+            "$score%",
+            style: const TextStyle(
+              fontSize: 44,
+              fontWeight: FontWeight.w700,
+              color: _textPrimary,
+              letterSpacing: -1,
+            ),
+          ),
+          const SizedBox(height: 4),
           const Text(
             "POSTURE SCORE",
             style: TextStyle(
@@ -310,8 +292,9 @@ class _MetricTile extends StatelessWidget {
       height: 110,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: _surfaceElevated,
+        color: _surfaceCard,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _divider, width: 0.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,6 +327,7 @@ class _InsightCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: _surface,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _divider, width: 0.5),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,6 +378,7 @@ class _ActivityChart extends StatelessWidget {
       decoration: BoxDecoration(
         color: _surface,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _divider, width: 0.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,17 +397,14 @@ class _ActivityChart extends StatelessWidget {
             height: 60,
             width: double.infinity,
             child: CustomPaint(
-              painter: _BarChartPainter(data: data, barColor: _accentPrimary),
+              painter: _BarChartPainter(data: data, barColor: _accentSoft),
             ),
           ),
           const SizedBox(height: 8),
           const Center(
             child: Text(
               "Good Posture Minutes",
-              style: TextStyle(
-                fontSize: 11,
-                color: _textMuted,
-              ),
+              style: TextStyle(fontSize: 11, color: _textMuted),
             ),
           ),
         ],
@@ -440,18 +422,14 @@ class _BarChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (data.isEmpty) return;
-
     final paint = Paint()
-      ..color = barColor.withValues(alpha: 0.8)
+      ..color = barColor.withValues(alpha: 0.7)
       ..style = PaintingStyle.fill;
-
     final maxVal = data.reduce((a, b) => a > b ? a : b);
     if (maxVal == 0) return;
-
-    final barWidth = 8.0;
+    const barWidth = 8.0;
     final totalWidth = data.length * barWidth + (data.length - 1) * 4.0;
     final startX = (size.width - totalWidth) / 2;
-
     for (int i = 0; i < data.length; i++) {
       final barHeight = (data[i] / maxVal) * size.height;
       final x = startX + i * (barWidth + 4.0);
@@ -483,88 +461,58 @@ class _AppBottomNav extends StatelessWidget {
       height: 72,
       decoration: const BoxDecoration(
         color: _bgPrimary,
-        border: Border(
-          top: BorderSide(color: _divider, width: 0.5),
-        ),
+        border: Border(top: BorderSide(color: _divider, width: 0.5)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _navItem(
-            icon: Icons.home,
-            isActive: currentIndex == 0,
-            onTap: () {},
-          ),
-          _navItem(
-            icon: Icons.star_outline,
-            isActive: currentIndex == 1,
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation1, animation2) =>
-                      const MyActivitiesPage(),
-                  transitionDuration: Duration.zero,
-                  reverseTransitionDuration: Duration.zero,
-                ),
-              );
-            },
-          ),
-          _navItem(
-            icon: Icons.access_time,
-            isActive: currentIndex == 2,
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation1, animation2) =>
-                      const MySchedulePage(),
-                  transitionDuration: Duration.zero,
-                  reverseTransitionDuration: Duration.zero,
-                ),
-              );
-            },
-          ),
-          _navItem(
-            icon: Icons.directions_run,
-            isActive: currentIndex == 3,
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation1, animation2) =>
-                      const WorkoutFitnessPage(),
-                  transitionDuration: Duration.zero,
-                  reverseTransitionDuration: Duration.zero,
-                ),
-              );
-            },
-          ),
-          _navItem(
-            icon: Icons.settings_outlined,
-            isActive: currentIndex == 4,
-            onTap: () {
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation1, animation2) =>
-                      const SettingsPage(),
-                  transitionDuration: Duration.zero,
-                  reverseTransitionDuration: Duration.zero,
-                ),
-              );
-            },
-          ),
+          _navItem(Icons.home, currentIndex == 0, () {}),
+          _navItem(Icons.star_outline, currentIndex == 1, () {
+            Navigator.pushReplacement(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (_, _, _) => const MyActivitiesPage(),
+                transitionDuration: Duration.zero,
+                reverseTransitionDuration: Duration.zero,
+              ),
+            );
+          }),
+          _navItem(Icons.access_time, currentIndex == 2, () {
+            Navigator.pushReplacement(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (_, _, _) => const MySchedulePage(),
+                transitionDuration: Duration.zero,
+                reverseTransitionDuration: Duration.zero,
+              ),
+            );
+          }),
+          _navItem(Icons.directions_run, currentIndex == 3, () {
+            Navigator.pushReplacement(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (_, _, _) => const WorkoutFitnessPage(),
+                transitionDuration: Duration.zero,
+                reverseTransitionDuration: Duration.zero,
+              ),
+            );
+          }),
+          _navItem(Icons.settings_outlined, currentIndex == 4, () {
+            Navigator.pushReplacement(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (_, _, _) => const SettingsPage(),
+                transitionDuration: Duration.zero,
+                reverseTransitionDuration: Duration.zero,
+              ),
+            );
+          }),
         ],
       ),
     );
   }
 
-  Widget _navItem({
-    required IconData icon,
-    required bool isActive,
-    required VoidCallback onTap,
-  }) {
+  Widget _navItem(IconData icon, bool isActive, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -572,7 +520,7 @@ class _AppBottomNav extends StatelessWidget {
         width: 48,
         height: 48,
         child: Icon(
-          isActive ? Icons.home : icon,
+          icon,
           size: 24,
           color: isActive ? _accentPrimary : _inactiveIcon,
         ),

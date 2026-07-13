@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart'; // Using intl for easy date formatting
+import 'package:intl/intl.dart';
 import 'home_page.dart';
 import 'settings_page.dart';
 import 'my_activities_page.dart';
 import 'workout_fitness_page.dart';
 import 'add_schedule_page.dart';
 import 'services/notification_service.dart';
+
+const Color _bgPrimary = Color(0xFF0D0D0D);
+const Color _surfaceCard = Color(0xFF1E1E1E);
+const Color _surfaceElevated = Color(0xFF252525);
+const Color _accentPrimary = Color(0xFF764697);
+const Color _accentSoft = Color(0xFF9C6ADE);
+const Color _textPrimary = Color(0xFFF0F0F0);
+const Color _textSecondary = Color(0xFFB0B0B0);
+const Color _textMuted = Color(0xFF777777);
+const Color _statusGreen = Color(0xFF4CAF50);
+const Color _divider = Color(0xFF2A2A2A);
+const Color _inactiveIcon = Color(0xFF555555);
 
 class ScheduleItem {
   String text;
@@ -16,8 +27,8 @@ class ScheduleItem {
 
   ScheduleItem({
     required this.text,
-    required this.bgColor,
-    this.textColor = Colors.black,
+    this.bgColor = const Color(0xFF1E1E1E),
+    this.textColor = const Color(0xFFF0F0F0),
     this.isCompleted = false,
   });
 }
@@ -46,32 +57,17 @@ class _MySchedulePageState extends State<MySchedulePage> {
   void initState() {
     super.initState();
     selectedDate = today;
-    // Generate 7 days centered around today
-    calendarDays = List.generate(7, (index) {
-      return today.subtract(Duration(days: 3 - index));
-    });
-
+    calendarDays = List.generate(7, (index) => today.subtract(Duration(days: 3 - index)));
   }
 
   void _addNewTask() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const AddSchedulePage()),
-    );
-
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const AddSchedulePage()));
     if (result != null && result is Map) {
       setState(() {
         String key = _dateToKey(result['date']);
-        if (!scheduleData.containsKey(key)) {
-          scheduleData[key] = [];
-        }
-        final activity = result['activity'] as String;
-        scheduleData[key]!.add(ScheduleItem(
-          text: activity,
-          bgColor: Colors.white,
-          textColor: Colors.black87,
-        ));
-        _notifications.addNotification('Schedule reminder: $activity');
+        if (!scheduleData.containsKey(key)) scheduleData[key] = [];
+        scheduleData[key]!.add(ScheduleItem(text: result['activity'] as String));
+        _notifications.addNotification('Schedule reminder: ${result['activity']}');
       });
     }
   }
@@ -79,12 +75,11 @@ class _MySchedulePageState extends State<MySchedulePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFA775B3),
+      backgroundColor: _bgPrimary,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 2. Header & Date Zone
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Column(
@@ -96,31 +91,17 @@ class _MySchedulePageState extends State<MySchedulePage> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF270530),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.access_time, color: Colors.white, size: 24),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(color: _accentPrimary.withValues(alpha: 0.15), shape: BoxShape.circle),
+                            child: const Icon(Icons.access_time, color: _accentSoft, size: 22),
                           ),
                           const SizedBox(width: 12),
-                          Text(
-                            "My schedule",
-                            style: GoogleFonts.poppins(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
+                          Text("My Schedule", style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: _textPrimary)),
                         ],
                       ),
                       if (_currentItems.isNotEmpty)
                         IconButton(
-                          icon: Icon(
-                            selectedTaskIndex != null ? Icons.delete_outline : Icons.delete_sweep_outlined,
-                            color: const Color(0xFF270530),
-                            size: 28,
-                          ),
+                          icon: Icon(selectedTaskIndex != null ? Icons.delete_outline : Icons.delete_sweep_outlined, color: _textMuted, size: 24),
                           onPressed: () {
                             setState(() {
                               if (selectedTaskIndex != null) {
@@ -131,107 +112,60 @@ class _MySchedulePageState extends State<MySchedulePage> {
                               }
                             });
                           },
-                          tooltip: selectedTaskIndex != null ? "Delete selected task" : "Clear daily schedule",
                         ),
                     ],
                   ),
                   const SizedBox(height: 24),
                   GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _showDatePicker = !_showDatePicker;
-                      });
-                    },
-                    child: Text(
-                      DateFormat('MMMM d, yyyy').format(selectedDate),
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        color: const Color(0xFFE1CDE3),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    onTap: () => setState(() => _showDatePicker = !_showDatePicker),
+                    child: Text(DateFormat('MMMM d, yyyy').format(selectedDate), style: TextStyle(fontSize: 16, color: _textMuted)),
                   ),
                   Text(
-                    selectedDate.day == today.day && 
-                    selectedDate.month == today.month && 
-                    selectedDate.year == today.year
-                        ? "Today"
-                        : DateFormat('EEEE').format(selectedDate),
-                    style: GoogleFonts.poppins(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF270530),
-                    ),
+                    selectedDate.day == today.day && selectedDate.month == today.month && selectedDate.year == today.year
+                        ? "Today" : DateFormat('EEEE').format(selectedDate),
+                    style: TextStyle(fontSize: 34, fontWeight: FontWeight.w700, color: _textPrimary),
                   ),
                   if (_showDatePicker)
                     Container(
                       margin: const EdgeInsets.only(top: 12),
                       padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.95),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                      decoration: BoxDecoration(color: _surfaceElevated, borderRadius: BorderRadius.circular(16), border: Border.all(color: _divider, width: 0.5)),
                       child: SizedBox(
-                        height: 220,
-                        width: double.infinity,
+                        height: 220, width: double.infinity,
                         child: CalendarDatePicker(
                           initialDate: selectedDate,
                           firstDate: today.subtract(const Duration(days: 365)),
                           lastDate: today,
-                          onDateChanged: (date) {
-                            setState(() {
-                              selectedDate = date;
-                              selectedTaskIndex = null;
-                              _showDatePicker = false;
-                            });
-                          },
+                          onDateChanged: (date) => setState(() { selectedDate = date; selectedTaskIndex = null; _showDatePicker = false; }),
                         ),
                       ),
                     ),
                 ],
               ),
             ),
-
-            // 3. Horizontal Date Selector Strip
             SizedBox(
-              height: 80,
+              height: 70,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: calendarDays.length,
                 itemBuilder: (context, index) {
                   DateTime day = calendarDays[index];
-                  bool isSelected = day.day == selectedDate.day && 
-                                   day.month == selectedDate.month && 
-                                   day.year == selectedDate.year;
-                  
+                  bool isSelected = day.day == selectedDate.day && day.month == selectedDate.month && day.year == selectedDate.year;
                   return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedDate = day;
-                        selectedTaskIndex = null; // Clear selection when changing date
-                      });
-                    },
+                    onTap: () => setState(() { selectedDate = day; selectedTaskIndex = null; }),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            DateFormat('E').format(day), // Mon, Tue, etc.
-                            style: GoogleFonts.poppins(
-                              color: isSelected ? Colors.white : const Color(0xFFE1CDE3),
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            day.day.toString(),
-                            style: GoogleFonts.poppins(
-                              color: isSelected ? Colors.white : const Color(0xFFE1CDE3),
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              fontSize: 18,
-                            ),
+                          Text(DateFormat('E').format(day), style: TextStyle(color: isSelected ? _accentSoft : _textMuted, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, fontSize: 14)),
+                          const SizedBox(height: 4),
+                          Container(
+                            width: 36, height: 36,
+                            decoration: BoxDecoration(color: isSelected ? _accentPrimary : Colors.transparent, borderRadius: BorderRadius.circular(12)),
+                            alignment: Alignment.center,
+                            child: Text(day.day.toString(), style: TextStyle(color: isSelected ? Colors.white : _textSecondary, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, fontSize: 16)),
                           ),
                         ],
                       ),
@@ -240,62 +174,33 @@ class _MySchedulePageState extends State<MySchedulePage> {
                 },
               ),
             ),
-
-            const SizedBox(height: 20),
-
-            // 4. Vertical Timeline & Schedule Cards
+            const SizedBox(height: 16),
             Expanded(
               child: _currentItems.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Text(
-                          'No schedule for this day',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            color: const Color(0xFFE1CDE3),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    )
+                  ? Center(child: Text('No schedule for this day', style: TextStyle(fontSize: 15, color: _textMuted)))
                   : Stack(
                       children: [
-                        // Vertical Tracking Line
-                        Positioned(
-                          left: 36,
-                          top: 0,
-                          bottom: 0,
-                          child: Container(
-                            width: 2,
-                            color: Colors.white,
-                          ),
-                        ),
+                        Positioned(left: 36, top: 0, bottom: 0, child: Container(width: 1.5, color: _divider)),
                         ListView.builder(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
                           itemCount: _currentItems.length,
-                          itemBuilder: (context, index) {
-                            return _buildScheduleItem(index);
-                          },
+                          itemBuilder: (context, index) => _buildScheduleItem(index),
                         ),
                       ],
                     ),
             ),
-            
-            // 5. Floating Action Button Accent
             Padding(
               padding: const EdgeInsets.only(bottom: 20.0),
               child: Center(
                 child: GestureDetector(
                   onTap: _addNewTask,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(12),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    decoration: BoxDecoration(color: _surfaceCard, borderRadius: BorderRadius.circular(14), border: Border.all(color: _divider, width: 0.5)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [Icon(Icons.add, color: _accentSoft, size: 20), const SizedBox(width: 8), Text("Add Task", style: TextStyle(color: _textSecondary, fontSize: 14))],
                     ),
-                    child: const Icon(Icons.add, color: Color(0xFF270530), size: 28),
                   ),
                 ),
               ),
@@ -303,59 +208,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
           ],
         ),
       ),
-      // Consistent Bottom Navigation Bar
-      bottomNavigationBar: Container(
-        height: 80,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(40),
-            topRight: Radius.circular(40),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildNavIcon(Icons.home_outlined, onTap: () {
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, a1, a2) => const HomePage(),
-                  transitionDuration: Duration.zero,
-                ),
-              );
-            }),
-            _buildNavIcon(Icons.star_outline, onTap: () {
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, a1, a2) => const MyActivitiesPage(),
-                  transitionDuration: Duration.zero,
-                ),
-              );
-            }),
-            _buildNavIcon(Icons.access_time_filled), // Active
-            _buildNavIcon(Icons.directions_run, onTap: () {
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, a1, a2) => const WorkoutFitnessPage(),
-                  transitionDuration: Duration.zero,
-                ),
-              );
-            }),
-            _buildNavIcon(Icons.settings_outlined, onTap: () {
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, a1, a2) => const SettingsPage(),
-                  transitionDuration: Duration.zero,
-                ),
-              );
-            }),
-          ],
-        ),
-      ),
+      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
@@ -366,88 +219,80 @@ class _MySchedulePageState extends State<MySchedulePage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Timeline node
           Container(
-            width: 26,
-            height: 26,
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            width: 24, height: 24, margin: const EdgeInsets.only(top: 4),
+            decoration: BoxDecoration(
+              color: item.isCompleted ? _statusGreen : _surfaceCard,
               shape: BoxShape.circle,
+              border: Border.all(color: item.isCompleted ? _statusGreen : _divider, width: 2),
             ),
+            child: item.isCompleted ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
           ),
           const SizedBox(width: 24),
-          // Card
           Expanded(
             child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  if (selectedTaskIndex == index) {
-                    selectedTaskIndex = null;
-                  } else {
-                    selectedTaskIndex = index;
-                  }
-                });
-              },
+              onTap: () => setState(() => selectedTaskIndex = (selectedTaskIndex == index) ? null : index),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: item.isCompleted ? const Color(0xFFE1CDE3) : Colors.white,
+                  color: _surfaceCard,
                   borderRadius: BorderRadius.circular(12),
-                  border: selectedTaskIndex == index
-                      ? Border.all(color: const Color(0xFF270530), width: 2)
-                      : null,
+                  border: selectedTaskIndex == index ? Border.all(color: _accentPrimary, width: 1) : Border.all(color: _divider, width: 0.5),
                 ),
                 child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      item.text,
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        color: item.textColor,
-                        fontWeight: FontWeight.w500,
-                        height: 1.5,
-                        decoration: item.isCompleted ? TextDecoration.lineThrough : null,
-                        decorationThickness: 2,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.text,
+                        style: TextStyle(
+                          fontSize: 15, color: item.isCompleted ? _textMuted : _textPrimary,
+                          fontWeight: FontWeight.w500, height: 1.5,
+                          decoration: item.isCompleted ? TextDecoration.lineThrough : null, decorationColor: _textMuted,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Completion Checkbox
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        item.isCompleted = !item.isCompleted;
-                      });
-                    },
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: item.isCompleted ? const Color(0xFF270530) : Colors.white70,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.black12),
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: () => setState(() => item.isCompleted = !item.isCompleted),
+                      child: Container(
+                        width: 22, height: 22,
+                        decoration: BoxDecoration(
+                          color: item.isCompleted ? _accentPrimary : Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: _divider, width: 1.5),
+                        ),
+                        child: item.isCompleted ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
                       ),
-                      child: item.isCompleted 
-                          ? const Icon(Icons.check, size: 18, color: Colors.white)
-                          : null,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
-  Widget _buildNavIcon(IconData icon, {VoidCallback? onTap}) {
-    return IconButton(
-      icon: Icon(icon, color: Colors.black, size: 28),
-      onPressed: onTap ?? () {},
+  Widget _buildNavIcon(IconData icon, {VoidCallback? onTap, bool isActive = false}) {
+    return IconButton(icon: Icon(icon, color: isActive ? _accentPrimary : _inactiveIcon, size: 26), onPressed: onTap ?? () {});
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      height: 72,
+      decoration: const BoxDecoration(color: _bgPrimary, border: Border(top: BorderSide(color: _divider, width: 0.5))),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildNavIcon(Icons.home_outlined, onTap: () => Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, _, _) => const HomePage(), transitionDuration: Duration.zero))),
+          _buildNavIcon(Icons.star_outline, onTap: () => Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, _, _) => const MyActivitiesPage(), transitionDuration: Duration.zero))),
+          _buildNavIcon(Icons.access_time_filled, isActive: true),
+          _buildNavIcon(Icons.directions_run, onTap: () => Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, _, _) => const WorkoutFitnessPage(), transitionDuration: Duration.zero))),
+          _buildNavIcon(Icons.settings_outlined, onTap: () => Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, _, _) => const SettingsPage(), transitionDuration: Duration.zero))),
+        ],
+      ),
     );
   }
 }

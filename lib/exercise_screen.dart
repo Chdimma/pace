@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'models/exercise.dart';
+
+const Color _bgPrimary = Color(0xFF0D0D0D);
+const Color _accentPrimary = Color(0xFF764697);
+const Color _accentSoft = Color(0xFF9C6ADE);
+const Color _textPrimary = Color(0xFFF0F0F0);
+const Color _statusGreen = Color(0xFF4CAF50);
+const Color _statusRed = Color(0xFFE53935);
+const Color _divider = Color(0xFF2A2A2A);
 
 class ExerciseScreen extends StatefulWidget {
   final Exercise exercise;
@@ -19,159 +26,84 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     final exercise = widget.exercise;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _bgPrimary,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: _bgPrimary,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFFB0B0B0)),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          exercise.title,
-          style: GoogleFonts.poppins(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        title: Text(exercise.title, style: TextStyle(color: _textPrimary, fontWeight: FontWeight.w600)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Exercise Image / Icon placeholder
             Center(
               child: Container(
-                width: 120,
-                height: 120,
+                width: 120, height: 120,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE1CDE3),
+                  color: const Color(0xFF2A2A2A),
                   borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: _divider, width: 0.5),
                 ),
-                child: const Icon(
-                  Icons.fitness_center,
-                  size: 60,
-                  color: Color(0xFF764697),
-                ),
+                child: Icon(Icons.fitness_center, size: 60, color: _accentSoft),
               ),
             ),
             const SizedBox(height: 24),
-
-            // Title & Meta info
-            Text(
-              exercise.title,
-              style: GoogleFonts.poppins(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 8),
+            Text(exercise.title, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: _textPrimary)),
+            const SizedBox(height: 12),
             Row(
               children: [
-                const Icon(Icons.timer_outlined, size: 18, color: Colors.black54),
+                const Icon(Icons.timer_outlined, size: 16, color: Color(0xFF777777)),
                 const SizedBox(width: 6),
-                Text(
-                  exercise.duration,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.black54,
-                  ),
-                ),
+                Text(exercise.duration, style: const TextStyle(fontSize: 14, color: Color(0xFF777777))),
                 const SizedBox(width: 16),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF764697).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    color: Color(0xFF764697).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text(
-                    exercise.level,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF764697),
-                    ),
-                  ),
+                  child: Text(exercise.level, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF9C6ADE))),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-
-            // Instructions Section
-            Text(
-              "Instructions",
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
+            const SizedBox(height: 28),
+            Text("Instructions", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: _textPrimary)),
             const SizedBox(height: 12),
             Text(
               exercise.instructions.isNotEmpty
                   ? exercise.instructions
                   : "Follow along with the exercise. Listen to your body and take breaks as needed.",
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.black87,
-                height: 1.6,
-              ),
+              style: const TextStyle(fontSize: 14, color: Color(0xFFB0B0B0), height: 1.7),
             ),
             const SizedBox(height: 40),
-
-            // Workout Active State
-            if (_isWorkoutActive)
-              _buildWorkoutActiveBanner(exercise),
-
-            // Start / Stop Button
+            if (_isWorkoutActive) _buildWorkoutActiveBanner(),
             SizedBox(
-              width: double.infinity,
-              height: 56,
+              width: double.infinity, height: 56,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _isWorkoutActive = !_isWorkoutActive;
-                  });
-                },
-                icon: Icon(
-                  _isWorkoutActive ? Icons.stop_circle_outlined : Icons.play_circle_fill,
-                  color: Colors.white,
-                ),
+                onPressed: () => setState(() => _isWorkoutActive = !_isWorkoutActive),
+                icon: Icon(_isWorkoutActive ? Icons.stop_circle_outlined : Icons.play_circle_fill, color: Colors.white),
                 label: Text(
                   _isWorkoutActive ? "End Workout" : "Start Workout",
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 16),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _isWorkoutActive
-                      ? Colors.redAccent
-                      : const Color(0xFF764697),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                  backgroundColor: _isWorkoutActive ? _statusRed : _accentPrimary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
                 ),
               ),
             ),
             const SizedBox(height: 16),
-
-            // Back to Library button
             SizedBox(
-              width: double.infinity,
-              height: 48,
+              width: double.infinity, height: 48,
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(
-                  "Back to Exercise Library",
-                  style: GoogleFonts.poppins(
-                    color: const Color(0xFF764697),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: const Text("Back to Exercise Library", style: TextStyle(color: Color(0xFF9C6ADE), fontWeight: FontWeight.w500)),
               ),
             ),
           ],
@@ -180,40 +112,27 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     );
   }
 
-  Widget _buildWorkoutActiveBanner(Exercise exercise) {
+  Widget _buildWorkoutActiveBanner() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.green.shade300),
+        color: const Color(0xFF1A2E1A),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _statusGreen.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.check_circle, color: Colors.green, size: 32),
+          Icon(Icons.check_circle, color: _statusGreen, size: 28),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Workout in Progress",
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.green.shade800,
-                  ),
-                ),
+                Text("Workout in Progress", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: _statusGreen)),
                 const SizedBox(height: 4),
-                Text(
-                  "Follow the instructions above. Stay hydrated!",
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    color: Colors.green.shade700,
-                  ),
-                ),
+                const Text("Follow the instructions. Stay hydrated!", style: TextStyle(fontSize: 13, color: Color(0xFF777777))),
               ],
             ),
           ),

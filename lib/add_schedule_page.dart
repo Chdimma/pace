@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+
+// ─── Color Palette (mature dark theme) ──────────────────────────────────────
+const Color _bgPrimary = Color(0xFF0D0D0D);
+const Color _surface = Color(0xFF161616);
+const Color _surfaceCard = Color(0xFF1E1E1E);
+const Color _surfaceInput = Color(0xFF222222);
+const Color _accentPrimary = Color(0xFF764697);
+const Color _accentSoft = Color(0xFF9C6ADE);
+const Color _textPrimary = Color(0xFFF0F0F0);
+const Color _textSecondary = Color(0xFFB0B0B0);
+const Color _textMuted = Color(0xFF777777);
+const Color _divider = Color(0xFF2A2A2A);
 
 class AddSchedulePage extends StatefulWidget {
   const AddSchedulePage({super.key});
@@ -22,39 +33,39 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF270530),
+            colorScheme: const ColorScheme.dark(
+              primary: _accentPrimary,
               onPrimary: Colors.white,
-              onSurface: Color(0xFF270530),
+              surface: _surfaceCard,
+              onSurface: _textPrimary,
             ),
+            dialogBackgroundColor: _surface,
           ),
           child: child!,
         );
       },
     );
     if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
+      setState(() => _selectedDate = picked);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFA775B3),
+      backgroundColor: _bgPrimary,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: _bgPrimary,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: _textSecondary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           "Add Schedule",
-          style: GoogleFonts.poppins(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
+          style: TextStyle(
+            color: _textPrimary,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -65,19 +76,21 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
           children: [
             Text(
               "Activity",
-              style: GoogleFonts.poppins(
-                fontSize: 18,
+              style: TextStyle(
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF270530),
+                color: _textPrimary,
               ),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _activityController,
+              style: TextStyle(color: _textPrimary),
               decoration: InputDecoration(
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: _surfaceInput,
                 hintText: "What are you planning?",
+                hintStyle: TextStyle(color: _textMuted),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -87,29 +100,30 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
             const SizedBox(height: 24),
             Text(
               "Date",
-              style: GoogleFonts.poppins(
-                fontSize: 18,
+              style: TextStyle(
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF270530),
+                color: _textPrimary,
               ),
             ),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () => _selectDate(context),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: _surfaceInput,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: _divider, width: 0.5),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       DateFormat('MMMM d, yyyy').format(_selectedDate),
-                      style: GoogleFonts.poppins(fontSize: 16),
+                      style: TextStyle(fontSize: 15, color: _textPrimary),
                     ),
-                    const Icon(Icons.calendar_today, color: Color(0xFF270530)),
+                    Icon(Icons.calendar_today, color: _accentSoft, size: 20),
                   ],
                 ),
               ),
@@ -117,13 +131,14 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
             const Spacer(),
             SizedBox(
               width: double.infinity,
-              height: 55,
+              height: 52,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF270530),
+                  backgroundColor: _accentPrimary,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
+                  elevation: 0,
                 ),
                 onPressed: () {
                   if (_activityController.text.isNotEmpty) {
@@ -135,10 +150,10 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                 },
                 child: Text(
                   "Save Schedule",
-                  style: GoogleFonts.poppins(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),

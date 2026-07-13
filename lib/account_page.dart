@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'edit_profile_page.dart';
 import 'models/user_data.dart';
+
+// ─── Color Palette (mature dark theme) ──────────────────────────────────────
+const Color _bgPrimary = Color(0xFF0D0D0D);
+const Color _accentPrimary = Color(0xFF764697);
+const Color _accentSoft = Color(0xFF9C6ADE);
+const Color _textPrimary = Color(0xFFF0F0F0);
+const Color _textMuted = Color(0xFF777777);
+const Color _divider = Color(0xFF2A2A2A);
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
@@ -9,20 +16,20 @@ class AccountPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _bgPrimary,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: _bgPrimary,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: const Color(0xFFB0B0B0)),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           "Account",
-          style: GoogleFonts.poppins(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
+          style: TextStyle(
+            color: _textPrimary,
+            fontWeight: FontWeight.w600,
+            fontSize: 22,
           ),
         ),
         centerTitle: false,
@@ -33,7 +40,6 @@ class AccountPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            // Profile Picture Section
             Center(
               child: Stack(
                 children: [
@@ -42,14 +48,10 @@ class AccountPage extends StatelessWidget {
                     height: 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFE1CDE3),
-                      border: Border.all(color: const Color(0xFF8D45B2), width: 2),
+                      color: const Color(0xFF2A2A2A),
+                      border: Border.all(color: _accentPrimary, width: 2),
                     ),
-                    child: const Icon(
-                      Icons.person,
-                      size: 80,
-                      color: Color(0xFF8D45B2),
-                    ),
+                    child: Icon(Icons.person, size: 80, color: _accentSoft),
                   ),
                   Positioned(
                     bottom: 0,
@@ -57,14 +59,10 @@ class AccountPage extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: const BoxDecoration(
-                        color: Color(0xFF8D45B2),
+                        color: _accentPrimary,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                        size: 20,
-                      ),
+                      child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
                     ),
                   ),
                 ],
@@ -73,22 +71,13 @@ class AccountPage extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               currentUser.name,
-              style: GoogleFonts.poppins(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: _textPrimary),
             ),
             Text(
               currentUser.phoneNumber,
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                color: Colors.black54,
-              ),
+              style: TextStyle(fontSize: 14, color: _textMuted),
             ),
             const SizedBox(height: 40),
-
-            // Information Section
             _buildInfoTile(
               icon: Icons.person_outline,
               label: "Full Name",
@@ -107,11 +96,9 @@ class AccountPage extends StatelessWidget {
               value: currentUser.email,
             ),
             const SizedBox(height: 50),
-
-            // Edit Profile Button
             SizedBox(
               width: double.infinity,
-              height: 55,
+              height: 52,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -122,17 +109,17 @@ class AccountPage extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8D45B2),
+                  backgroundColor: _accentPrimary,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   elevation: 0,
                 ),
                 child: Text(
                   "Edit Profile",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),
@@ -157,10 +144,10 @@ class AccountPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5EEF7),
-              borderRadius: BorderRadius.circular(12),
+              color: const Color(0xFF2A2A2A),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: const Color(0xFF8D45B2), size: 24),
+            child: Icon(icon, color: _accentSoft, size: 22),
           ),
           const SizedBox(width: 16),
           Column(
@@ -168,19 +155,11 @@ class AccountPage extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: Colors.black54,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 12, color: _textMuted, fontWeight: FontWeight.w500),
               ),
               Text(
                 value,
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 16, color: _textPrimary, fontWeight: FontWeight.w500),
               ),
             ],
           ),
@@ -190,10 +169,6 @@ class AccountPage extends StatelessWidget {
   }
 
   Widget _buildDivider() {
-    return const Divider(
-      color: Colors.black12,
-      thickness: 1,
-      height: 1,
-    );
+    return const Divider(color: _divider, thickness: 0.5, height: 0.5);
   }
 }

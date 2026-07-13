@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+const Color _bgPrimary = Color(0xFF0D0D0D);
+const Color _textPrimary = Color(0xFFF0F0F0);
+const Color _textMuted = Color(0xFF777777);
 
 class CheckRecordsPage extends StatelessWidget {
   const CheckRecordsPage({super.key});
@@ -7,20 +10,17 @@ class CheckRecordsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _bgPrimary,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: _bgPrimary,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFFB0B0B0)),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Records',
-          style: GoogleFonts.poppins(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: _textPrimary, fontWeight: FontWeight.w600),
         ),
       ),
       body: Center(
@@ -29,28 +29,17 @@ class CheckRecordsPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.assignment_outlined,
-                size: 80,
-                color: Colors.grey.shade300,
-              ),
+              const Icon(Icons.assignment_outlined, size: 80, color: Color(0xFF333333)),
               const SizedBox(height: 16),
               Text(
                 'Check Records',
-                style: GoogleFonts.poppins(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: _textPrimary),
               ),
               const SizedBox(height: 8),
               Text(
                 'Your health records will appear here.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.black54,
-                ),
+                style: TextStyle(fontSize: 14, color: _textMuted),
               ),
             ],
           ),

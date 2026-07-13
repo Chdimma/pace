@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'home_page.dart';
-import 'settings_page.dart';
-import 'login_page.dart'; // Import login_page instead of main.dart
+import 'login_page.dart';
 import 'models/user_data.dart';
+
+const Color _bgPrimary = Color(0xFF0D0D0D);
+const Color _surfaceCard = Color(0xFF1E1E1E);
+const Color _accentPrimary = Color(0xFF764697);
+const Color _textPrimary = Color(0xFFF0F0F0);
+const Color _textSecondary = Color(0xFFB0B0B0);
+const Color _divider = Color(0xFF2A2A2A);
 
 class LogoutPage extends StatelessWidget {
   const LogoutPage({super.key});
@@ -11,177 +15,79 @@ class LogoutPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF8D45B2),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFD8BFE5),
-              Color(0xFF8D45B2),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header Zone
-              Padding(
-                padding: const EdgeInsets.only(left: 24.0, top: 40.0, bottom: 20.0),
-                child: Row(
+      backgroundColor: _bgPrimary,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 24.0, top: 40.0, bottom: 20.0),
+              child: Row(
+                children: [
+                  Icon(Icons.logout, size: 28, color: _accentPrimary),
+                  const SizedBox(width: 12),
+                  Text("Logout", style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600, color: _textPrimary)),
+                ],
+              ),
+            ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30.0),
+              child: Container(
+                padding: const EdgeInsets.all(30.0),
+                decoration: BoxDecoration(
+                  color: _surfaceCard,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: _divider, width: 0.5),
+                ),
+                child: Column(
                   children: [
-                    const Icon(Icons.logout, size: 36, color: Colors.black),
-                    const SizedBox(width: 12),
+                    Icon(Icons.logout, size: 56, color: _accentPrimary),
+                    const SizedBox(height: 20),
                     Text(
-                      "Logout",
-                      style: GoogleFonts.poppins(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                      "Are you sure you want to log out?",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: _textPrimary),
+                    ),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity, height: 52,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          isLoggedIn = false;
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginPage()),
+                            (route) => false,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _accentPrimary,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          elevation: 0,
+                        ),
+                        child: Text("Yes, Logout", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity, height: 52,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: _divider, width: 1),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: Text("Cancel", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: _textSecondary)),
                       ),
                     ),
                   ],
                 ),
               ),
-
-              const Spacer(),
-
-              // Confirmation Card
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                child: Container(
-                  padding: const EdgeInsets.all(30.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha:0.9),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        "Are you sure you want to log out?",
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      // Logout Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 55,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // 1. Mark as logged out
-                            isLoggedIn = false;
-
-                            // 2. Navigate back to Login
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(builder: (context) => const LoginPage()),
-                              (route) => false,
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF8D45B2),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            "Yes, Logout",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      // Cancel Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 55,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF8D45B2), width: 2),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          child: Text(
-                            "Cancel",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF8D45B2),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const Spacer(flex: 2),
-            ],
-          ),
-        ),
-      ),
-      // Consistent Bottom Navigation Bar
-      bottomNavigationBar: Container(
-        height: 80,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(40),
-            topRight: Radius.circular(40),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildNavIcon(context, Icons.home_outlined, onTap: () {
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, a1, a2) => const HomePage(),
-                  transitionDuration: Duration.zero,
-                ),
-              );
-            }),
-            _buildNavIcon(context, Icons.star_outline),
-            _buildNavIcon(context, Icons.access_time),
-            _buildNavIcon(context, Icons.directions_run),
-            _buildNavIcon(context, Icons.settings_outlined, onTap: () {
-              Navigator.pushReplacement(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, a1, a2) => const SettingsPage(),
-                  transitionDuration: Duration.zero,
-                ),
-              );
-            }),
+            ),
+            const Spacer(flex: 2),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildNavIcon(BuildContext context, IconData icon, {VoidCallback? onTap}) {
-    return IconButton(
-      icon: Icon(icon, color: Colors.black, size: 28),
-      onPressed: onTap ?? () {},
     );
   }
 }
