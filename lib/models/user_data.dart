@@ -18,7 +18,7 @@ class UserData {
 
   UserData({
     required this.name,
-    this.username = "kim_styles",
+    this.username = "User",
     this.password = "password123",
     required this.phoneNumber,
     required this.email,
@@ -190,9 +190,9 @@ class UserData {
 
 // Global instance to simulate "Current Logged In User"
 UserData currentUser = UserData(
-  name: "Kim", // Default for now
+  name: "User", // Default for now
   phoneNumber: "+234 812 345 6789",
-  email: "kimberly@pace.app",
+  email: "user@pace.app",
   location: "Lagos, Nigeria",
   slouchingSeconds: 35,
   goodPostureSeconds: 3665, // 1h 1m 5s

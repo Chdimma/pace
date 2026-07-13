@@ -77,7 +77,7 @@ class _MyActivitiesPageState extends State<MyActivitiesPage> {
                       IconButton(
                         icon: Icon(Icons.notifications_none, size: 26, color: _textSecondary),
                         onPressed: () => Navigator.push(context, PageRouteBuilder(
-                          pageBuilder: (_, __, ___) => const NotificationPage(),
+                          pageBuilder: (_, _, _) => const NotificationPage(),
                           transitionDuration: Duration.zero, reverseTransitionDuration: Duration.zero,
                         )),
                       ),
