@@ -34,17 +34,6 @@ class _LoginPageState extends State<LoginPage> {
     final identifier = _identifierController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (identifier.isEmpty && password.isEmpty) {
-      currentUser.lastLoginDate = DateTime.now();
-      isLoggedIn = true;
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-      return;
-    }
-
     final phoneRegex = RegExp(r'^\+?[0-9\s-]{7,15}$');
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     final bool isPhone = phoneRegex.hasMatch(identifier);
