@@ -6,6 +6,7 @@ import 'my_activities_page.dart';
 import 'my_schedule_page.dart';
 import 'workout_fitness_page.dart';
 import 'models/user_data.dart';
+import 'services/auth_service.dart';
 import 'services/notification_service.dart';
 
 const Color _bgPrimary = Color(0xFF0D0D0D);
@@ -42,11 +43,16 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   Timer? _timer;
   final AppNotificationService _notifications = AppNotificationService.instance;
+  bool _isStretchReady = false;
+  int _todayStretchCount = 0;
+  DateTime? _nextStretchTime;
+  bool _isCompletingStretch = false;
 
   @override
   void initState() {
     super.initState();
     currentUser.updateStreak();
+    _fetchStretchStatus();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) setState(() {});
     });
@@ -56,6 +62,55 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _fetchStretchStatus() async {
+    try {
+      final status = await AuthService.getStretchStatus();
+      if (status['success'] == true) {
+        setState(() {
+          _nextStretchTime = DateTime.parse(status['nextStretch']);
+          _isStretchReady = status['isReady'] == true;
+          _todayStretchCount = status['todayCount'] ?? 0;
+        });
+      }
+    } catch (_) {
+      // Silently fall back to local timer
+    }
+  }
+
+  Future<void> _handleStretchTap() async {
+    if (!_isStretchReady || _isCompletingStretch) return;
+
+    setState(() => _isCompletingStretch = true);
+    try {
+      final result = await AuthService.completeStretch();
+      if (result['success'] == true) {
+        setState(() {
+          _nextStretchTime = DateTime.parse(result['nextStretch']);
+          _isStretchReady = false;
+          _todayStretchCount++;
+        });
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Stretch completed! Next stretch in 20 minutes.'),
+            backgroundColor: Color(0xFF4CAF50),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isCompletingStretch = false);
+    }
   }
 
   @override
@@ -137,23 +192,77 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildNextStretchTile() {
-    final isReady = currentUser.getNextStretchTimer() == "Ready!";
-    return Container(
-      width: double.infinity,
-      height: 120,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(color: _surfaceCard, borderRadius: BorderRadius.circular(16), border: Border.all(color: _divider, width: 0.5)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text("NEXT STRETCH", style: _capsLabel),
-          const SizedBox(height: 12),
-          Text(
-            currentUser.getNextStretchTimer(),
-            style: _metricValue.copyWith(color: isReady ? _statusGreen : _textPrimary),
+    // Calculate remaining time from backend data
+    String timerText;
+    bool isReady;
+
+    if (_nextStretchTime != null) {
+      final duration = _nextStretchTime!.difference(DateTime.now());
+      if (duration.isNegative) {
+        timerText = "Ready!";
+        isReady = true;
+      } else {
+        final minutes = duration.inMinutes;
+        final seconds = duration.inSeconds % 60;
+        timerText = "${minutes}min ${seconds}secs";
+        isReady = false;
+      }
+    } else {
+      // Fallback to local UserData model
+      timerText = currentUser.getNextStretchTimer();
+      isReady = timerText == "Ready!";
+    }
+
+    return GestureDetector(
+      onTap: isReady ? _handleStretchTap : null,
+      child: Container(
+        width: double.infinity,
+        height: 120,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: isReady ? const Color(0xFF1A2E1A) : _surfaceCard,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isReady ? const Color(0xFF4CAF50) : _divider,
+            width: isReady ? 1.5 : 0.5,
           ),
-        ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Text("NEXT STRETCH", style: _capsLabel),
+                const Spacer(),
+                if (_todayStretchCount > 0)
+                  Text("${_todayStretchCount} today", style: TextStyle(fontSize: 11, color: _textMuted)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    timerText,
+                    style: _metricValue.copyWith(color: isReady ? _statusGreen : _textPrimary),
+                  ),
+                ),
+                if (isReady)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _statusGreen,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: _isCompletingStretch
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Text("STRETCH NOW", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

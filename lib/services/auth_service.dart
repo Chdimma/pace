@@ -176,6 +176,95 @@ class AuthService {
     }
   }
 
+  // ─── STRETCH TIMER ─────────────────────────────────────────────────────────
+  static Future<Map<String, dynamic>> completeStretch() async {
+    try {
+      if (_authToken == null) {
+        throw Exception('You must be logged in to track stretches.');
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.authBaseUrl}/stretch/complete'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_authToken',
+        },
+      ).timeout(Duration(seconds: timeoutSeconds));
+
+      if (response.body.isEmpty) {
+        throw Exception('Empty response from backend');
+      }
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return body is Map<String, dynamic>
+            ? body
+            : {'success': false, 'message': body.toString()};
+      }
+
+      if (body is Map<String, dynamic>) {
+        final errorMessage = body['error'] ?? body['message'] ?? 'Failed to record stretch';
+        throw Exception(errorMessage.toString());
+      }
+
+      throw Exception('Failed to record stretch');
+    } on TimeoutException {
+      throw Exception('Request timeout. Backend may be offline.');
+    } on http.ClientException catch (error) {
+      throw Exception('Network error: ${error.message}');
+    } catch (error) {
+      if (error is Exception) rethrow;
+      throw Exception('Failed to complete stretch: $error');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getStretchStatus() async {
+    try {
+      if (_authToken == null) {
+        // Return default values if not logged in
+        return {
+          'success': true,
+          'nextStretch': DateTime.now().add(const Duration(minutes: 20)).toIso8601String(),
+          'isReady': false,
+          'intervalMinutes': 20,
+          'todayCount': 0,
+        };
+      }
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.authBaseUrl}/stretch/status'),
+        headers: {
+          'Authorization': 'Bearer $_authToken',
+        },
+      ).timeout(Duration(seconds: timeoutSeconds));
+
+      if (response.body.isEmpty) {
+        throw Exception('Empty response from backend');
+      }
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return body is Map<String, dynamic>
+            ? body
+            : {'success': false, 'message': body.toString()};
+      }
+
+      if (body is Map<String, dynamic>) {
+        final errorMessage = body['error'] ?? body['message'] ?? 'Failed to get stretch status';
+        throw Exception(errorMessage.toString());
+      }
+
+      throw Exception('Failed to get stretch status');
+    } on TimeoutException {
+      throw Exception('Request timeout.');
+    } on http.ClientException catch (error) {
+      throw Exception('Network error: ${error.message}');
+    } catch (error) {
+      if (error is Exception) rethrow;
+      throw Exception('Failed to get stretch status: $error');
+    }
+  }
+
   static Future<Map<String, dynamic>> signup({
     required String name,
     required String email,
