@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
 import 'models/user_data.dart';
+import 'services/auth_service.dart';
 
 // ─── Color Palette (mature dark theme) ──────────────────────────────────────
 const Color _bgPrimary = Color(0xFF0D0D0D);
@@ -11,8 +12,39 @@ const Color _textMuted = Color(0xFF777777);
 const Color _statusRed = Color(0xFFE53935);
 const Color _divider = Color(0xFF2A2A2A);
 
-class DeleteAccountPage extends StatelessWidget {
+class DeleteAccountPage extends StatefulWidget {
   const DeleteAccountPage({super.key});
+
+  @override
+  State<DeleteAccountPage> createState() => _DeleteAccountPageState();
+}
+
+class _DeleteAccountPageState extends State<DeleteAccountPage> {
+  bool _isDeleting = false;
+
+  Future<void> _handleDelete() async {
+    setState(() => _isDeleting = true);
+    try {
+      await AuthService.deleteAccount();
+      isLoggedIn = false;
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (route) => false,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isDeleting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,25 +104,21 @@ class DeleteAccountPage extends StatelessWidget {
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
-                        onPressed: () {
-                          isLoggedIn = false;
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(builder: (context) => const LoginPage()),
-                            (route) => false,
-                          );
-                        },
+                        onPressed: _isDeleting ? null : _handleDelete,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _statusRed,
+                          disabledBackgroundColor: _statusRed.withValues(alpha: 0.4),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
                           elevation: 0,
                         ),
-                        child: Text(
-                          "Delete Permanently",
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
-                        ),
+                        child: _isDeleting
+                            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                            : Text(
+                                "Delete Permanently",
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -98,7 +126,7 @@ class DeleteAccountPage extends StatelessWidget {
                       width: double.infinity,
                       height: 52,
                       child: OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: _isDeleting ? null : () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: _divider, width: 1),
                           shape: RoundedRectangleBorder(

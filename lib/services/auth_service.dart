@@ -78,6 +78,58 @@ class AuthService {
     }
   }
 
+  // Store token for authenticated requests
+  static String? _authToken;
+
+  static void setToken(String? token) {
+    _authToken = token;
+  }
+
+  static String? get authToken => _authToken;
+
+  static Future<Map<String, dynamic>> deleteAccount() async {
+    try {
+      if (_authToken == null) {
+        throw Exception('You must be logged in to delete your account.');
+      }
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/delete-account'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_authToken',
+        },
+      ).timeout(Duration(seconds: timeoutSeconds));
+
+      if (response.body.isEmpty) {
+        throw Exception('Empty response from backend');
+      }
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        // Clear token on successful deletion
+        _authToken = null;
+        return body is Map<String, dynamic>
+            ? body
+            : {'success': false, 'message': body.toString()};
+      }
+
+      if (body is Map<String, dynamic>) {
+        final errorMessage = body['error'] ?? body['message'] ?? 'Delete failed';
+        throw Exception(errorMessage.toString());
+      }
+
+      throw Exception('Failed to delete account');
+    } on TimeoutException {
+      throw Exception('Request timeout. Backend may be offline.');
+    } on http.ClientException catch (error) {
+      throw Exception('Network error: ${error.message}');
+    } catch (error) {
+      if (error is Exception) rethrow;
+      throw Exception('Failed to delete account: $error');
+    }
+  }
+
   static Future<Map<String, dynamic>> signup({
     required String name,
     required String email,

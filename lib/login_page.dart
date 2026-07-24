@@ -64,6 +64,8 @@ class _LoginPageState extends State<LoginPage> {
         currentUser.phoneNumber = user['phoneNumber'] ?? currentUser.phoneNumber;
         isLoggedIn = true;
         currentUser.lastLoginDate = DateTime.now();
+        // Store the auth token for authenticated requests
+        AuthService.setToken(result['token']);
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
