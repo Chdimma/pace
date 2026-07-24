@@ -34,27 +34,23 @@ class UserData {
     required this.nextStretch,
   });
 
-  // Logic to update or reset streak based on daily login
+  // Logic to update or reset streak based on a rolling 24-hour window
   void updateStreak() {
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final lastLogin = DateTime(lastLoginDate.year, lastLoginDate.month, lastLoginDate.day);
+    final hoursSinceLastLogin = now.difference(lastLoginDate).inHours;
 
-    final difference = today.difference(lastLogin).inDays;
-
-    if (difference <= 0) {
+    if (hoursSinceLastLogin < 24) {
       return;
     }
 
-    if (difference == 1) {
+    if (hoursSinceLastLogin < 48) {
       streak += 1;
     } else {
-      streak = 0;
+      streak = 1;
     }
 
     lastLoginDate = now;
   }
-
   // Check if enough days have passed to show a timeframe
   bool isTimeframeUnlocked(String timeframe) {
     int daysActive = DateTime.now().difference(joinDate).inDays;
