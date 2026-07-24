@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 8),
               Padding(
                 padding: const EdgeInsets.only(left: 4),
-                child: Text("Hi, ${currentUser.name}", style: TextStyle(fontSize: 15, color: _textMuted)),
+                child: Text("Hi, ${currentUser.username}", style: TextStyle(fontSize: 15, color: _textMuted)),
               ),
               const SizedBox(height: 16),
               _StatusPill(isConnected: currentUser.isBotConnected),

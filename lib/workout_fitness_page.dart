@@ -84,7 +84,7 @@ class _WorkoutFitnessPageState extends State<WorkoutFitnessPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Hi, ${currentUser.name}!", style: TextStyle(fontSize: 16, color: _textMuted)),
+              Text("Hi, ${currentUser.username}!", style: TextStyle(fontSize: 16, color: _textMuted)),
               const SizedBox(height: 4),
               Text("Keep your body fit", style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: _textPrimary)),
               const SizedBox(height: 28),
