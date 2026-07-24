@@ -130,6 +130,52 @@ class AuthService {
     }
   }
 
+  static Future<Map<String, dynamic>> solanaLogin({
+    required String solanaPublicKey,
+    String? name,
+    String? username,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/solana-login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'solanaPublicKey': solanaPublicKey,
+          'name': name,
+          'username': username,
+        }),
+      ).timeout(Duration(seconds: timeoutSeconds));
+
+      if (response.body.isEmpty) {
+        throw Exception('Empty response from backend');
+      }
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        if (body is Map<String, dynamic> && body['token'] != null) {
+          setToken(body['token']);
+        }
+        return body is Map<String, dynamic>
+            ? body
+            : {'success': false, 'message': body.toString()};
+      }
+
+      if (body is Map<String, dynamic>) {
+        final errorMessage = body['error'] ?? body['message'] ?? 'Solana login failed';
+        throw Exception(errorMessage.toString());
+      }
+
+      throw Exception('Solana login failed');
+    } on TimeoutException {
+      throw Exception('Request timeout. Backend may be offline.');
+    } on http.ClientException catch (error) {
+      throw Exception('Network error: ${error.message}');
+    } catch (error) {
+      if (error is Exception) rethrow;
+      throw Exception('Failed to login with wallet: $error');
+    }
+  }
+
   static Future<Map<String, dynamic>> signup({
     required String name,
     required String email,

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'forgot_password_page.dart';
 import 'home_page.dart';
 import 'services/auth_service.dart';
+import 'services/solana_wallet_service.dart';
 import 'signup_page.dart';
 import 'models/user_data.dart';
 
@@ -87,13 +88,45 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _handleWalletConnect() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Wallet connection coming soon'),
-        backgroundColor: Color(0xFF764697),
-      ),
-    );
+  Future<void> _handleWalletConnect() async {
+    setState(() => _isSubmitting = true);
+    try {
+      final walletService = SolanaWalletService.instance;
+      final publicKey = await walletService.connect();
+
+      if (publicKey == null) {
+        throw Exception('Could not get wallet address.');
+      }
+
+      final result = await AuthService.solanaLogin(
+        solanaPublicKey: publicKey,
+      );
+
+      if (result['success'] == true) {
+        final user = result['user'];
+        currentUser.name = user['name'] ?? currentUser.name;
+        currentUser.username = user['username'] ?? currentUser.username;
+        currentUser.email = user['email'] ?? currentUser.email;
+        isLoggedIn = true;
+        currentUser.lastLoginDate = DateTime.now();
+
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
